@@ -1,14 +1,24 @@
 import { format, parseISO } from 'date-fns'
-import { es } from 'date-fns/locale'
 
 export const formatDate = (date, formatStr = 'dd/MM/yyyy') => {
   if (!date) return ''
-  const parsedDate = typeof date === 'string' ? parseISO(date) : date
-  return format(parsedDate, formatStr, { locale: es })
+  try {
+    const parsedDate = typeof date === 'string' ? parseISO(date) : date
+    return format(parsedDate, formatStr)
+  } catch (error) {
+    console.error('Error formateando fecha:', error)
+    return date
+  }
 }
 
 export const formatDateTime = (date) => {
-  return formatDate(date, 'dd/MM/yyyy HH:mm')
+  if (!date) return ''
+  try {
+    return formatDate(date, 'dd/MM/yyyy HH:mm')
+  } catch (error) {
+    console.error('Error formateando fecha/hora:', error)
+    return date
+  }
 }
 
 export const formatDateForInput = (date) => {

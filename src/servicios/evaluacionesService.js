@@ -5,7 +5,8 @@ export const evaluacionesService = {
   // Listar evaluaciones con filtros opcionales
   listar: async (params = {}) => {
     const response = await apiClient.get(API_ENDPOINTS.EVALUACIONES.LISTAR, { params })
-    return response.data
+    // El backend devuelve directamente el array, no un objeto con 'data'
+    return Array.isArray(response.data) ? response.data : []
   },
 
   // Crear evaluación
