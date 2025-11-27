@@ -317,6 +317,8 @@ const Evaluaciones = () => {
                     <TableHead>
                         <TableRow>
                             <TableCell>Título</TableCell>
+                            <TableCell>Clase</TableCell>
+                            <TableCell>Sección</TableCell>
                             <TableCell>Tipo</TableCell>
                             <TableCell>Fecha Inicio</TableCell>
                             <TableCell>Fecha Cierre</TableCell>
@@ -330,6 +332,12 @@ const Evaluaciones = () => {
                             evaluaciones.map((evaluacion) => (
                                 <TableRow key={evaluacion.id}>
                                     <TableCell>{evaluacion.titulo}</TableCell>
+                                    <TableCell>
+                                        {evaluacion.clase ? `${evaluacion.clase.codigo} - ${evaluacion.clase.nombre}` : '-'}
+                                    </TableCell>
+                                    <TableCell>
+                                        {evaluacion.seccion ? evaluacion.seccion.nombre : '-'}
+                                    </TableCell>
                                     <TableCell>{getTipoChip(evaluacion.tipo)}</TableCell>
                                     <TableCell>{formatDateTime(evaluacion.fechaInicio)}</TableCell>
                                     <TableCell>{formatDateTime(evaluacion.fechaCierre)}</TableCell>
@@ -358,7 +366,7 @@ const Evaluaciones = () => {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={7} align="center">
+                                <TableCell colSpan={9} align="center">
                                     No hay evaluaciones registradas
                                 </TableCell>
                             </TableRow>

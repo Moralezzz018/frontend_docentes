@@ -8,15 +8,22 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import WorkIcon from '@mui/icons-material/Work'
 import BarChartIcon from '@mui/icons-material/BarChart'
+import ViewListIcon from '@mui/icons-material/ViewList'
+import MeetingRoomIcon from '@mui/icons-material/MeetingRoom'
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 
 const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Evaluaciones', icon: <AssignmentIcon />, path: '/evaluaciones' },
     { text: 'Estudiantes', icon: <PeopleIcon />, path: '/estudiantes' },
     { text: 'Clases', icon: <ClassIcon />, path: '/clases' },
+    { text: 'Secciones', icon: <ViewListIcon />, path: '/secciones' },
     { text: 'Periodos', icon: <CalendarTodayIcon />, path: '/periodos' },
+    { text: 'Parciales', icon: <ViewListIcon />, path: '/parciales' },
+    { text: 'Aulas', icon: <MeetingRoomIcon />, path: '/aulas' },
     { text: 'Asistencias', icon: <CheckCircleIcon />, path: '/asistencias' },
     { text: 'Proyectos', icon: <WorkIcon />, path: '/proyectos' },
+    { text: 'Usuarios', icon: <AccountCircleIcon />, path: '/usuarios' },
     { text: 'Análisis', icon: <BarChartIcon />, path: '/analisis' },
 ]
 

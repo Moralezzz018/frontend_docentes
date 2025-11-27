@@ -2,16 +2,22 @@ import { AppBar, Toolbar, IconButton, Typography, Box, Avatar, Menu, MenuItem } 
 import MenuIcon from '@mui/icons-material/Menu'
 import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@almacen/authStore'
 import { useThemeStore } from '@almacen/themeStore'
 
 const TopBar = ({ drawerWidth, handleDrawerToggle }) => {
     const [anchorEl, setAnchorEl] = useState(null)
+    const [avatarKey, setAvatarKey] = useState(Date.now())
     const navigate = useNavigate()
     const { user, logout } = useAuthStore()
     const { mode, toggleMode } = useThemeStore()
+
+    // Actualizar avatar cuando cambie la imagen del usuario
+    useEffect(() => {
+        setAvatarKey(Date.now())
+    }, [user?.imagen])
 
     const handleMenu = (event) => {
         setAnchorEl(event.currentTarget)
@@ -54,7 +60,12 @@ const TopBar = ({ drawerWidth, handleDrawerToggle }) => {
                     </IconButton>
                     <Typography variant="body2">{user?.nombre || user?.login || 'Usuario'}</Typography>
                     <IconButton onClick={handleMenu} sx={{ p: 0 }}>
-                        <Avatar alt={user?.nombre || user?.login} src={user?.imagen} />
+                        <Avatar 
+                            alt={user?.nombre || user?.login} 
+                            src={user?.imagen ? `${user.imagen}?t=${avatarKey}` : undefined}
+                        >
+                            {!user?.imagen && (user?.login?.charAt(0).toUpperCase() || 'U')}
+                        </Avatar>
                     </IconButton>
                     <Menu
                         anchorEl={anchorEl}

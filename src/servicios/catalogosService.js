@@ -89,3 +89,25 @@ export const seccionesService = {
         return response.data
     },
 }
+
+export const aulasService = {
+    listar: async (params = {}) => {
+        const response = await apiClient.get(API_ENDPOINTS.AULAS.LISTAR, { params })
+        return Array.isArray(response.data) ? response.data : []
+    },
+
+    guardar: async (data) => {
+        const response = await apiClient.post(API_ENDPOINTS.AULAS.GUARDAR, data)
+        return response.data
+    },
+
+    editar: async (id, data) => {
+        const response = await apiClient.put(`${API_ENDPOINTS.AULAS.EDITAR}?id=${id}`, data)
+        return response.data
+    },
+
+    eliminar: async (id) => {
+        const response = await apiClient.delete(`${API_ENDPOINTS.AULAS.ELIMINAR}?id=${id}`)
+        return response.data
+    },
+}
