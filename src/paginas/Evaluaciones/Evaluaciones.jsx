@@ -29,12 +29,14 @@ import ErrorMessage from '@componentes/common/ErrorMessage'
 import ConfirmDialog from '@componentes/common/ConfirmDialog'
 import EvaluacionDialog from '@componentes/evaluaciones/EvaluacionDialog'
 import { evaluacionesService } from '@servicios/evaluacionesService'
-import { periodosService, parcialesService } from '@servicios/catalogosService'
+import { periodosService, parcialesService, clasesService, seccionesService } from '@servicios/catalogosService'
 
 const Evaluaciones = () => {
     const [evaluaciones, setEvaluaciones] = useState([])
     const [periodos, setPeriodos] = useState([])
     const [parciales, setParciales] = useState([])
+    const [clases, setClases] = useState([])
+    const [secciones, setSecciones] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [dialogOpen, setDialogOpen] = useState(false)
@@ -56,10 +58,12 @@ const Evaluaciones = () => {
             setError(null)
             
             // Cargar datos en paralelo con manejo de errores individual
-            const [evaluacionesData, periodosData, parcialesData] = await Promise.allSettled([
+            const [evaluacionesData, periodosData, parcialesData, clasesData, seccionesData] = await Promise.allSettled([
                 evaluacionesService.listar(filtros),
                 periodosService.listar(),
                 parcialesService.listar(),
+                clasesService.listar(),
+                seccionesService.listar(),
             ])
             
             // Procesar evaluaciones
@@ -84,6 +88,22 @@ const Evaluaciones = () => {
             } else {
                 console.error('Error cargando parciales:', parcialesData.reason)
                 setParciales([])
+            }
+            
+            // Procesar clases
+            if (clasesData.status === 'fulfilled' && Array.isArray(clasesData.value)) {
+                setClases(clasesData.value)
+            } else {
+                console.error('Error cargando clases:', clasesData.reason)
+                setClases([])
+            }
+            
+            // Procesar secciones
+            if (seccionesData.status === 'fulfilled' && Array.isArray(seccionesData.value)) {
+                setSecciones(seccionesData.value)
+            } else {
+                console.error('Error cargando secciones:', seccionesData.reason)
+                setSecciones([])
             }
             
         } catch (err) {
@@ -141,9 +161,12 @@ const Evaluaciones = () => {
             handleCloseDialog()
             cargarDatos()
         } catch (err) {
+            console.error('Error al guardar:', err.response?.data)
+            const errorMsg = err.response?.data?.msj || err.response?.data?.error || 'Error al guardar la evaluación'
+            const errorDetails = err.response?.data?.data ? JSON.stringify(err.response.data.data) : ''
             setSnackbar({ 
                 open: true, 
-                message: err.response?.data?.error || 'Error al guardar la evaluación', 
+                message: `${errorMsg}${errorDetails ? ': ' + errorDetails : ''}`, 
                 severity: 'error' 
             })
         }
@@ -352,6 +375,8 @@ const Evaluaciones = () => {
                 evaluacion={selectedEvaluacion}
                 periodos={periodos}
                 parciales={parciales}
+                clases={clases}
+                secciones={secciones}
             />
 
             {/* Dialog de confirmación para eliminar */}

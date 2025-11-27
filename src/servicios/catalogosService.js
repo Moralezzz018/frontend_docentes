@@ -26,7 +26,8 @@ export const periodosService = {
 export const parcialesService = {
     listar: async (params = {}) => {
         const response = await apiClient.get(API_ENDPOINTS.PARCIALES.LISTAR, { params })
-        return response.data.data || []
+        // El backend de parciales devuelve directamente el array
+        return Array.isArray(response.data) ? response.data : []
     },
 
     guardar: async (data) => {
@@ -41,6 +42,50 @@ export const parcialesService = {
 
     eliminar: async (id) => {
         const response = await apiClient.delete(`${API_ENDPOINTS.PARCIALES.ELIMINAR}?id=${id}`)
+        return response.data
+    },
+}
+
+export const clasesService = {
+    listar: async (params = {}) => {
+        const response = await apiClient.get(API_ENDPOINTS.CLASES.LISTAR, { params })
+        return Array.isArray(response.data) ? response.data : []
+    },
+
+    guardar: async (data) => {
+        const response = await apiClient.post(API_ENDPOINTS.CLASES.GUARDAR, data)
+        return response.data
+    },
+
+    editar: async (id, data) => {
+        const response = await apiClient.put(`${API_ENDPOINTS.CLASES.EDITAR}?id=${id}`, data)
+        return response.data
+    },
+
+    eliminar: async (id) => {
+        const response = await apiClient.delete(`${API_ENDPOINTS.CLASES.ELIMINAR}?id=${id}`)
+        return response.data
+    },
+}
+
+export const seccionesService = {
+    listar: async (params = {}) => {
+        const response = await apiClient.get(API_ENDPOINTS.SECCIONES.LISTAR, { params })
+        return Array.isArray(response.data) ? response.data : []
+    },
+
+    guardar: async (data) => {
+        const response = await apiClient.post(API_ENDPOINTS.SECCIONES.GUARDAR, data)
+        return response.data
+    },
+
+    editar: async (id, data) => {
+        const response = await apiClient.put(`${API_ENDPOINTS.SECCIONES.EDITAR}?id=${id}`, data)
+        return response.data
+    },
+
+    eliminar: async (id) => {
+        const response = await apiClient.delete(`${API_ENDPOINTS.SECCIONES.ELIMINAR}?id=${id}`)
         return response.data
     },
 }
