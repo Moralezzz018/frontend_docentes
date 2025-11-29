@@ -13,9 +13,8 @@ import {
     Typography,
     Chip,
     Tooltip,
-    CircularProgress,
-    Alert,
-    Snackbar
+    Snackbar,
+    Alert
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
@@ -23,6 +22,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
 import { estudiantesService } from '../../servicios/estudiantesService'
 import { aulasService } from '../../servicios/aulasService'
+import EstadoContenido from '../../componentes/common/EstadoContenido'
 import EstudianteDialog from '../../componentes/estudiantes/EstudianteDialog'
 import CargarExcelDialog from '../../componentes/estudiantes/CargarExcelDialog'
 
@@ -132,14 +132,6 @@ const Estudiantes = () => {
         }
     }
 
-    if (loading) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-                <CircularProgress />
-            </Box>
-        )
-    }
-
     return (
         <Box>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
@@ -165,29 +157,29 @@ const Estudiantes = () => {
                 </Box>
             </Box>
 
-            <TableContainer component={Paper}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>ID</TableCell>
-                            <TableCell>Nombre</TableCell>
-                            <TableCell>Correo</TableCell>
-                            <TableCell>Estado</TableCell>
-                            <TableCell>Clases Inscritas</TableCell>
-                            <TableCell align="center">Acciones</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {estudiantes.length === 0 ? (
+            <EstadoContenido
+                cargando={loading}
+                datos={estudiantes}
+                tipoVacio="estudiantes"
+                mensajeVacio="No hay estudiantes registrados"
+                descripcionVacio="Comienza agregando estudiantes manualmente o cargando un archivo Excel"
+                tipoCarga="tabla"
+                filas={5}
+            >
+                <TableContainer component={Paper}>
+                    <Table>
+                        <TableHead>
                             <TableRow>
-                                <TableCell colSpan={6} align="center">
-                                    <Typography variant="body2" color="text.secondary" py={3}>
-                                        No hay estudiantes registrados
-                                    </Typography>
-                                </TableCell>
+                                <TableCell>ID</TableCell>
+                                <TableCell>Nombre</TableCell>
+                                <TableCell>Correo</TableCell>
+                                <TableCell>Estado</TableCell>
+                                <TableCell>Clases Inscritas</TableCell>
+                                <TableCell align="center">Acciones</TableCell>
                             </TableRow>
-                        ) : (
-                            estudiantes.map((estudiante) => (
+                        </TableHead>
+                        <TableBody>
+                            {estudiantes.map((estudiante) => (
                                 <TableRow key={estudiante.id} hover>
                                     <TableCell>{estudiante.id}</TableCell>
                                     <TableCell>{estudiante.nombre}</TableCell>
@@ -223,11 +215,11 @@ const Estudiantes = () => {
                                         </Tooltip>
                                     </TableCell>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </EstadoContenido>
 
             <EstudianteDialog
                 open={dialogOpen}

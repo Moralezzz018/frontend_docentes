@@ -18,6 +18,7 @@ import Aulas from '@paginas/Aulas/Aulas'
 import Usuarios from '@paginas/Usuarios/Usuarios'
 import Perfil from '@paginas/Perfil/Perfil'
 import Proyectos from '@paginas/Proyectos/Proyectos'
+import Analisis from '@paginas/Analisis/Analisis'
 
 function App() {
   return (
@@ -146,7 +147,7 @@ function App() {
           path="analisis" 
           element={
             <RoleProtectedRoute moduloRequerido="analisis">
-              <div>Análisis (próximamente)</div>
+              <Analisis />
             </RoleProtectedRoute>
           } 
         />
