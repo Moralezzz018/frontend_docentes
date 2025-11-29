@@ -54,19 +54,27 @@ const AsistenciaDialog = ({
         ? parciales.filter(parcial => parcial.periodoId === parseInt(formData.periodoId))
         : parciales
 
-    // Filtrar estudiantes según la clase seleccionada
-    const estudiantesFiltrados = formData.claseId 
-        ? estudiantes.filter(estudiante => {
-            // Debug: Ver estructura de datos (remover después)
-            if (estudiante.id === 1 && formData.claseId) {
-                console.log('DEBUG - Estructura del primer estudiante:', {
-                    id: estudiante.id,
-                    nombre: estudiante.nombre,
-                    inscripciones: estudiante.inscripciones,
-                    claseSeleccionada: formData.claseId
-                })
+    // Filtrar clases para estudiantes: solo mostrar clases en las que está inscrito
+    const clasesFiltradas = (esEstudiante && user?.estudianteId)
+        ? clases.filter(clase => {
+            // Buscar al estudiante actual en la lista de estudiantes
+            const estudianteActual = estudiantes.find(est => est.id === user.estudianteId)
+            
+            if (!estudianteActual?.inscripciones || !Array.isArray(estudianteActual.inscripciones)) {
+                return false
             }
             
+            // Verificar si tiene inscripción en esta clase
+            return estudianteActual.inscripciones.some(inscripcion => {
+                const claseIdInscripcion = inscripcion.claseId || inscripcion.clase?.id
+                return claseIdInscripcion === clase.id
+            })
+        })
+        : clases
+
+    // Filtrar estudiantes según la clase seleccionada (solo para docentes)
+    const estudiantesFiltrados = formData.claseId 
+        ? estudiantes.filter(estudiante => {
             // Verificar si el estudiante tiene inscripciones en la clase seleccionada
             if (!estudiante.inscripciones || !Array.isArray(estudiante.inscripciones)) {
                 return false
@@ -108,8 +116,14 @@ const AsistenciaDialog = ({
     const validateForm = () => {
         const newErrors = {}
 
+        // Para estudiantes, el estudianteId debe estar auto-establecido
         if (!formData.estudianteId) {
-            newErrors.estudianteId = 'Seleccione un estudiante'
+            if (esEstudiante && user?.estudianteId) {
+                // Auto-establecer si falta
+                setFormData(prev => ({ ...prev, estudianteId: user.estudianteId }))
+            } else {
+                newErrors.estudianteId = 'Seleccione un estudiante'
+            }
         }
 
         if (!formData.claseId) {
@@ -196,14 +210,19 @@ const AsistenciaDialog = ({
                             value={formData.claseId}
                             onChange={handleChange}
                             error={!!errors.claseId}
-                            helperText={errors.claseId}
+                            helperText={errors.claseId || (esEstudiante ? "Tus clases inscritas" : "")}
                             required
                         >
-                            {Array.isArray(clases) && clases.map((clase) => (
+                            {Array.isArray(clasesFiltradas) && clasesFiltradas.map((clase) => (
                                 <MenuItem key={clase.id} value={clase.id}>
                                     {clase.codigo} - {clase.nombre}
                                 </MenuItem>
                             ))}
+                            {esEstudiante && clasesFiltradas.length === 0 && (
+                                <MenuItem value="" disabled>
+                                    No tienes clases inscritas
+                                </MenuItem>
+                            )}
                         </TextField>
                     </Grid>
 
