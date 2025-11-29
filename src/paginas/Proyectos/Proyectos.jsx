@@ -24,16 +24,20 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined'
 import LoadingSpinner from '@componentes/common/LoadingSpinner'
 import ErrorMessage from '@componentes/common/ErrorMessage'
 import ConfirmDialog from '@componentes/common/ConfirmDialog'
 import ProyectoDialog from '@componentes/Proyectos/ProyectoDialog'
 import { proyectosService } from '@servicios/proyectosService'
 import { clasesService } from '@servicios/catalogosService'
+import { estudiantesService } from '@servicios/estudiantesService'
 
 const Proyectos = () => {
   const [proyectos, setProyectos] = useState([])
   const [clases, setClases] = useState([])
+  const [estudiantes, setEstudiantes] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -43,6 +47,7 @@ const Proyectos = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
   const [errorDialogOpen, setErrorDialogOpen] = useState(false)
   const [errorDialogData, setErrorDialogData] = useState(null)
+  const [expandedId, setExpandedId] = useState(null)
 
   const cargarDatos = async () => {
     try {
@@ -65,6 +70,15 @@ const Proyectos = () => {
       } else {
         console.error('Error cargando clases:', clasesData.reason)
         setClases([])
+      }
+
+      // Cargar estudiantes (para asignarlos a proyectos)
+      try {
+        const est = await estudiantesService.listar()
+        setEstudiantes(Array.isArray(est) ? est : [])
+      } catch (e) {
+        console.error('Error cargando estudiantes:', e)
+        setEstudiantes([])
       }
     } catch (err) {
       console.error('Error:', err)
@@ -94,9 +108,26 @@ const Proyectos = () => {
       if (selectedProyecto) {
         await proyectosService.editar(selectedProyecto.id, data)
         setSnackbar({ open: true, message: 'Proyecto actualizado exitosamente', severity: 'success' })
+        // Si se solicitó asignación aleatoria al actualizar
+        if (data.asignacionAleatoria && (data.cantidadAleatoria || 0) > 0) {
+          try {
+            await proyectosService.asignarAleatorio(selectedProyecto.id, data.cantidadAleatoria)
+          } catch (e) {
+            console.error('Error asignando aleatorio después de editar:', e)
+          }
+        }
       } else {
-        await proyectosService.guardar(data)
+        const saved = await proyectosService.guardar(data)
         setSnackbar({ open: true, message: 'Proyecto creado exitosamente', severity: 'success' })
+        // Si guardamos y se pidió asignación aleatoria, llamar al endpoint
+        if (data.asignacionAleatoria && (data.cantidadAleatoria || 0) > 0) {
+          try {
+            const proyectoId = saved?.proyecto?.id || saved?.id
+            if (proyectoId) await proyectosService.asignarAleatorio(proyectoId, data.cantidadAleatoria)
+          } catch (e) {
+            console.error('Error asignando aleatorio después de crear:', e)
+          }
+        }
       }
       handleCloseDialog()
       cargarDatos()
@@ -158,37 +189,72 @@ const Proyectos = () => {
               <TableCell>Descripción</TableCell>
               <TableCell>Fecha entrega</TableCell>
               <TableCell>Estado</TableCell>
+              <TableCell>Detalles</TableCell>
               <TableCell align="center">Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {proyectos && proyectos.length > 0 ? (
               proyectos.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell>{p.nombre}</TableCell>
-                  <TableCell>{truncate(p.descripcion)}</TableCell>
-                  <TableCell>{p.fechaEntrega ? p.fechaEntrega.split('T')[0] : '-'}</TableCell>
-                  <TableCell>{p.estado || '-'}</TableCell>
-                  <TableCell align="center">
-                    <IconButton size="small" color="primary" onClick={() => handleOpenDialog(p)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton size="small" color="error" onClick={() => handleDeleteClick(p)}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
+                <>
+                  <TableRow key={p.id}>
+                    <TableCell>{p.nombre}</TableCell>
+                    <TableCell>{truncate(p.descripcion)}</TableCell>
+                    <TableCell>{p.fecha_entrega ? p.fecha_entrega.split('T')[0] : '-'}</TableCell>
+                    <TableCell>{p.estado || '-'}</TableCell>
+                    <TableCell>
+                      <IconButton size="small" color="primary" onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}>
+                        {expandedId === p.id ? <CloseOutlinedIcon /> : <InfoOutlinedIcon />}
+                      </IconButton>
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton size="small" color="primary" onClick={() => handleOpenDialog(p)}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton size="small" color="error" onClick={() => handleDeleteClick(p)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+
+                  {expandedId === p.id && (
+                    <TableRow>
+                      <TableCell colSpan={6}>
+                        <strong>Clase:</strong>{' '}
+                        {(() => {
+                          const clase = clases.find((c) => c.id === p.claseId)
+                          return clase ? `${clase.codigo ? `${clase.codigo} - ` : ''}${clase.nombre}` : '-'
+                        })()}
+                        <div style={{ marginTop: 8 }}>
+                          <strong>Estudiantes:</strong>
+                          {p.estudiantes && p.estudiantes.length > 0 ? (
+                            <ul style={{ margin: '6px 0 0 16px' }}>
+                              {p.estudiantes.map((s, idx) => {
+                                const id = typeof s === 'object' ? (s.id || s) : s
+                                const stud = estudiantes.find((e) => e.id === id)
+                                const label = stud ? `${stud.nombres || stud.nombre || ''} ${stud.apellidos || stud.apellido || ''}`.trim() : (typeof s === 'object' ? (s.nombres || s.nombre || String(s.id || '')) : String(s))
+                                return <li key={idx}>{label}</li>
+                              })}
+                            </ul>
+                          ) : (
+                            <span> Ninguno</span>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} align="center">No hay proyectos registrados</TableCell>
+                <TableCell colSpan={6} align="center">No hay proyectos registrados</TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </TableContainer>
 
-      <ProyectoDialog open={dialogOpen} onClose={handleCloseDialog} onSave={handleSave} proyecto={selectedProyecto} clases={clases} />
+      <ProyectoDialog open={dialogOpen} onClose={handleCloseDialog} onSave={handleSave} proyecto={selectedProyecto} clases={clases} estudiantes={estudiantes} />
 
       <ConfirmDialog
         open={confirmOpen}

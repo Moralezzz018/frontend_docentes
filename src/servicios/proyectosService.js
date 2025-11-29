@@ -21,6 +21,10 @@ export const proyectosService = {
     const response = await apiClient.delete(`${API_ENDPOINTS.PROYECTOS.ELIMINAR}?id=${id}`)
     return response.data
   },
+  asignarAleatorio: async (proyectoId, cantidad = 1) => {
+    const response = await apiClient.post(API_ENDPOINTS.PROYECTOS.ASIGNAR_ALEATORIO, { proyectoId, cantidad })
+    return response.data
+  },
 }
 
 export default proyectosService

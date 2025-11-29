@@ -11,20 +11,25 @@ import {
   InputLabel,
   Select,
 } from '@mui/material'
+import { Autocomplete, Switch, FormControlLabel, Box } from '@mui/material'
 
 const estados = [
   { value: 'PENDIENTE', label: 'Pendiente' },
-  { value: 'EN_PROGRESO', label: 'En progreso' },
-  { value: 'COMPLETO', label: 'Completo' },
+  { value: 'EN_CURSO', label: 'En curso' },
+  { value: 'ENTREGADO', label: 'Entregado' },
+  { value: 'CERRADO', label: 'Cerrado' },
 ]
 
-const ProyectoDialog = ({ open, onClose, onSave, proyecto, clases = [] }) => {
+const ProyectoDialog = ({ open, onClose, onSave, proyecto, clases = [], estudiantes = [] }) => {
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
     fechaEntrega: '',
     estado: 'PENDIENTE',
     claseId: '',
+    estudiantes: [],
+    asignacionAleatoria: false,
+    cantidadAleatoria: 1,
   })
   const [errors, setErrors] = useState({})
 
@@ -33,9 +38,17 @@ const ProyectoDialog = ({ open, onClose, onSave, proyecto, clases = [] }) => {
       setFormData({
         nombre: proyecto.nombre || '',
         descripcion: proyecto.descripcion || '',
-        fechaEntrega: proyecto.fechaEntrega ? proyecto.fechaEntrega.split('T')[0] : '',
+        fechaEntrega: proyecto.fecha_entrega ? proyecto.fecha_entrega.split('T')[0] : '',
         estado: proyecto.estado || 'PENDIENTE',
         claseId: proyecto.claseId || '',
+        estudiantes: proyecto.estudiantes ? proyecto.estudiantes.map((s) => {
+          // proyecto.estudiantes may be array of ids or objects; try to resolve to full object from prop `estudiantes`
+          const id = typeof s === 'object' ? (s.id || s) : s
+          const found = estudiantes.find((e) => e.id === id)
+          return found || (typeof s === 'object' ? s : { id })
+        }) : [],
+        asignacionAleatoria: proyecto.asignacionAleatoria || false,
+        cantidadAleatoria: proyecto.cantidadAleatoria || 1,
       })
     } else {
       setFormData({ nombre: '', descripcion: '', fechaEntrega: '', estado: 'PENDIENTE', claseId: '' })
@@ -59,14 +72,27 @@ const ProyectoDialog = ({ open, onClose, onSave, proyecto, clases = [] }) => {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }))
   }
 
+  const handleToggleAleatorio = (e) => {
+    const checked = e.target.checked
+    setFormData((prev) => ({ ...prev, asignacionAleatoria: checked }))
+    if (checked) {
+      // limpiar selección manual cuando se activa asignación aleatoria
+      setFormData((prev) => ({ ...prev, estudiantes: [] }))
+    }
+  }
+
   const handleSubmit = () => {
     if (!validateForm()) return
     const dataToSave = {
       nombre: formData.nombre,
       descripcion: formData.descripcion,
-      fechaEntrega: formData.fechaEntrega ? `${formData.fechaEntrega}T00:00:00` : '',
+      fecha_entrega: formData.fechaEntrega ? `${formData.fechaEntrega}T00:00:00` : '',
       estado: formData.estado,
       claseId: formData.claseId ? parseInt(formData.claseId) : null,
+      // enviar array de ids si se seleccionaron alumnos manualmente
+      estudiantes: Array.isArray(formData.estudiantes) ? formData.estudiantes.map((s) => parseInt(s.id || s)) : [],
+      asignacionAleatoria: !!formData.asignacionAleatoria,
+      cantidadAleatoria: formData.asignacionAleatoria ? parseInt(formData.cantidadAleatoria || 1) : 0,
     }
     onSave(dataToSave)
   }
@@ -153,6 +179,48 @@ const ProyectoDialog = ({ open, onClose, onSave, proyecto, clases = [] }) => {
             <MenuItem disabled>No hay clases disponibles</MenuItem>
           )}
         </TextField>
+
+        <Box sx={{ mt: 2 }}>
+          <FormControlLabel
+            control={<Switch checked={formData.asignacionAleatoria} onChange={handleToggleAleatorio} />}
+            label="Asignar aleatorio"
+          />
+
+            {!formData.asignacionAleatoria && (
+              <Autocomplete
+                multiple
+                options={estudiantes || []}
+                getOptionLabel={(option) => {
+                  if (!option) return ''
+                  if (typeof option === 'string') return option
+                  const nombres = option.nombres || option.nombre || ''
+                  const apellidos = option.apellidos || option.apellido || ''
+                  const email = option.email || option.correo || ''
+                  return `${nombres} ${apellidos}`.trim() || email || String(option.id || '')
+                }}
+                value={formData.estudiantes}
+                onChange={(e, newValue) => {
+                  // newValue is array of option objects
+                  setFormData((prev) => ({ ...prev, estudiantes: Array.isArray(newValue) ? newValue : [] }))
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} label="Agregar alumnos" placeholder="Seleccione alumnos" />
+                )}
+              />
+            )}
+
+          {formData.asignacionAleatoria && (
+            <TextField
+              margin="normal"
+              label="Cantidad aleatoria"
+              name="cantidadAleatoria"
+              type="number"
+              value={formData.cantidadAleatoria}
+              onChange={handleChange}
+              inputProps={{ min: 1 }}
+            />
+          )}
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>

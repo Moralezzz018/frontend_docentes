@@ -85,6 +85,8 @@ export const API_ENDPOINTS = {
         GUARDAR: `${API_BASE_URL}/api/proyectos/guardar`,
         EDITAR: `${API_BASE_URL}/api/proyectos/editar`,
         ELIMINAR: `${API_BASE_URL}/api/proyectos/eliminar`,
+        ASIGNAR: `${API_BASE_URL}/api/proyectos/asignar`,
+        ASIGNAR_ALEATORIO: `${API_BASE_URL}/api/proyectos/asignar-aleatorio`,
     },
 
     // Aulas
