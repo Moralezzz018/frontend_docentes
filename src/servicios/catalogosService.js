@@ -111,3 +111,42 @@ export const aulasService = {
         return response.data
     },
 }
+
+// Servicio auxiliar para análisis
+export const catalogosService = {
+    obtenerPeriodos: async () => {
+        const data = await periodosService.listar()
+        return Array.isArray(data) ? data : []
+    },
+
+    obtenerClases: async () => {
+        const data = await clasesService.listar()
+        return Array.isArray(data) ? data : []
+    },
+
+    obtenerParciales: async (periodoId) => {
+        const data = await parcialesService.listar(periodoId ? { periodoId } : {})
+        return Array.isArray(data) ? data : []
+    },
+
+    obtenerEstudiantes: async () => {
+        try {
+            const { estudiantesService } = await import('./estudiantesService')
+            const data = await estudiantesService.listar()
+            return Array.isArray(data) ? data : []
+        } catch (err) {
+            console.error('Error al obtener estudiantes:', err)
+            return []
+        }
+    },
+
+    obtenerSecciones: async () => {
+        const data = await seccionesService.listar()
+        return Array.isArray(data) ? data : []
+    },
+
+    obtenerAulas: async () => {
+        const data = await aulasService.listar()
+        return Array.isArray(data) ? data : []
+    }
+}
