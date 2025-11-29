@@ -29,4 +29,25 @@ export const useAuthStore = create((set) => ({
         localStorage.setItem('user', JSON.stringify(user))
         set({ user })
     },
+
+    // Helpers para obtener información del rol
+    getRol: () => {
+        const state = useAuthStore.getState()
+        return state.user?.rol?.nombre || null
+    },
+
+    isAdmin: () => {
+        const state = useAuthStore.getState()
+        return state.user?.rol?.nombre === 'ADMIN'
+    },
+
+    isDocente: () => {
+        const state = useAuthStore.getState()
+        return state.user?.rol?.nombre === 'DOCENTE'
+    },
+
+    isEstudiante: () => {
+        const state = useAuthStore.getState()
+        return state.user?.rol?.nombre === 'ESTUDIANTE'
+    },
 }))

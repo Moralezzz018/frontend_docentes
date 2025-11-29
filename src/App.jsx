@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import MainLayout from '@componentes/layout/MainLayout'
 import { ProtectedRoute } from '@componentes/auth/ProtectedRoute'
+import { RoleProtectedRoute } from '@componentes/auth/RoleProtectedRoute'
 import Login from '@paginas/Login'
 import Dashboard from '@paginas/Dashboard'
 import Evaluaciones from '@paginas/Evaluaciones/Evaluaciones'
@@ -28,17 +29,118 @@ function App() {
         }
       >
         <Route index element={<Dashboard />} />
-        <Route path="evaluaciones" element={<Evaluaciones />} />
-        <Route path="estudiantes" element={<Estudiantes />} />
-        <Route path="clases" element={<Clases />} />
-        <Route path="secciones" element={<Secciones />} />
-        <Route path="periodos" element={<Periodos />} />
-        <Route path="parciales" element={<Parciales />} />
-        <Route path="aulas" element={<Aulas />} />
-        <Route path="asistencias" element={<Asistencias />} />
-        <Route path="proyectos" element={<div>Proyectos (próximamente)</div>} />
-        <Route path="usuarios" element={<Usuarios />} />
-        <Route path="analisis" element={<div>Análisis (próximamente)</div>} />
+        
+        {/* Evaluaciones: ADMIN, DOCENTE, ESTUDIANTE */}
+        <Route 
+          path="evaluaciones" 
+          element={
+            <RoleProtectedRoute moduloRequerido="evaluaciones">
+              <Evaluaciones />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Asistencias: ADMIN, DOCENTE, ESTUDIANTE */}
+        <Route 
+          path="asistencias" 
+          element={
+            <RoleProtectedRoute moduloRequerido="asistencias">
+              <Asistencias />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Estudiantes: ADMIN, DOCENTE */}
+        <Route 
+          path="estudiantes" 
+          element={
+            <RoleProtectedRoute moduloRequerido="estudiantes">
+              <Estudiantes />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Clases: ADMIN, DOCENTE */}
+        <Route 
+          path="clases" 
+          element={
+            <RoleProtectedRoute moduloRequerido="clases">
+              <Clases />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Secciones: ADMIN, DOCENTE */}
+        <Route 
+          path="secciones" 
+          element={
+            <RoleProtectedRoute moduloRequerido="secciones">
+              <Secciones />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Periodos: ADMIN, DOCENTE */}
+        <Route 
+          path="periodos" 
+          element={
+            <RoleProtectedRoute moduloRequerido="periodos">
+              <Periodos />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Parciales: ADMIN, DOCENTE */}
+        <Route 
+          path="parciales" 
+          element={
+            <RoleProtectedRoute moduloRequerido="parciales">
+              <Parciales />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Aulas: ADMIN, DOCENTE */}
+        <Route 
+          path="aulas" 
+          element={
+            <RoleProtectedRoute moduloRequerido="aulas">
+              <Aulas />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Proyectos: ADMIN, DOCENTE */}
+        <Route 
+          path="proyectos" 
+          element={
+            <RoleProtectedRoute moduloRequerido="proyectos">
+              <div>Proyectos (próximamente)</div>
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Usuarios: SOLO ADMIN */}
+        <Route 
+          path="usuarios" 
+          element={
+            <RoleProtectedRoute moduloRequerido="usuarios">
+              <Usuarios />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Análisis: ADMIN, DOCENTE */}
+        <Route 
+          path="analisis" 
+          element={
+            <RoleProtectedRoute moduloRequerido="analisis">
+              <div>Análisis (próximamente)</div>
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Perfil: Todos los roles */}
         <Route path="perfil" element={<Perfil />} />
       </Route>
 

@@ -1,7 +1,10 @@
-import { AppBar, Toolbar, IconButton, Typography, Box, Avatar, Menu, MenuItem } from '@mui/material'
+import { AppBar, Toolbar, IconButton, Typography, Box, Avatar, Menu, MenuItem, Chip } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
+import SchoolIcon from '@mui/icons-material/School'
+import PersonIcon from '@mui/icons-material/Person'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@almacen/authStore'
@@ -33,6 +36,38 @@ const TopBar = ({ drawerWidth, handleDrawerToggle }) => {
         handleClose()
     }
 
+    // Obtener ícono y color según el rol
+    const getRolConfig = (rolNombre) => {
+        switch (rolNombre) {
+            case 'ADMIN':
+                return { 
+                    icon: <AdminPanelSettingsIcon sx={{ fontSize: 16 }} />, 
+                    color: 'error',
+                    label: 'Administrador'
+                }
+            case 'DOCENTE':
+                return { 
+                    icon: <SchoolIcon sx={{ fontSize: 16 }} />, 
+                    color: 'primary',
+                    label: 'Docente'
+                }
+            case 'ESTUDIANTE':
+                return { 
+                    icon: <PersonIcon sx={{ fontSize: 16 }} />, 
+                    color: 'success',
+                    label: 'Estudiante'
+                }
+            default:
+                return { 
+                    icon: <PersonIcon sx={{ fontSize: 16 }} />, 
+                    color: 'default',
+                    label: 'Usuario'
+                }
+        }
+    }
+
+    const rolConfig = getRolConfig(user?.rol?.nombre)
+
     return (
         <AppBar
             position="fixed"
@@ -58,7 +93,28 @@ const TopBar = ({ drawerWidth, handleDrawerToggle }) => {
                     <IconButton onClick={toggleMode} color="inherit" title={mode === 'dark' ? 'Modo claro' : 'Modo oscuro'}>
                         {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
                     </IconButton>
-                    <Typography variant="body2">{user?.nombre || user?.login || 'Usuario'}</Typography>
+                    
+                    {/* Chip con el rol del usuario */}
+                    {user?.rol?.nombre && (
+                        <Chip 
+                            icon={rolConfig.icon}
+                            label={rolConfig.label}
+                            color={rolConfig.color}
+                            size="small"
+                            sx={{ 
+                                display: { xs: 'none', md: 'flex' },
+                                fontWeight: 600,
+                                color: 'white',
+                                '& .MuiChip-icon': {
+                                    color: 'white'
+                                }
+                            }}
+                        />
+                    )}
+                    
+                    <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
+                        {user?.nombre || user?.login || 'Usuario'}
+                    </Typography>
                     <IconButton onClick={handleMenu} sx={{ p: 0 }}>
                         <Avatar 
                             alt={user?.nombre || user?.login} 
