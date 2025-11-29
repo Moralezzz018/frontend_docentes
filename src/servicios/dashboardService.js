@@ -31,19 +31,19 @@ export const dashboardService = {
             })
 
             const totalAsistenciasHoy = asistenciasHoy.length
-            const asistenciasPresentesHoy = asistenciasHoy.filter(a => a.estado === 'P').length
+            const asistenciasPresentesHoy = asistenciasHoy.filter(a => a.estado === 'PRESENTE').length
             const porcentajeAsistencia = totalAsistenciasHoy > 0 
                 ? Math.round((asistenciasPresentesHoy / totalAsistenciasHoy) * 100) 
                 : 0
 
             // Estudiantes activos
             const estudiantesActivos = Array.isArray(estudiantes.data) 
-                ? estudiantes.data.filter(e => e.estado === 'AC').length 
+                ? estudiantes.data.filter(e => e.estado === 'ACTIVO').length 
                 : 0
 
-            // Clases activas
+            // Clases activas (todas las clases son activas, no tienen campo estado)
             const clasesActivas = Array.isArray(clases.data)
-                ? clases.data.filter(c => c.estado === 'AC').length
+                ? clases.data.length
                 : 0
 
             return {

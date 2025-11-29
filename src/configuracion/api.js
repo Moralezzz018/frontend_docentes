@@ -110,6 +110,13 @@ export const API_ENDPOINTS = {
             ELIMINAR: `${API_BASE_URL}/api/usuarios/imagenes/eliminar`,
         },
     },
+
+    // Notificaciones
+    NOTIFICACIONES: {
+        ESTADISTICAS: `${API_BASE_URL}/api/notificaciones/estadisticas`,
+        COLA: `${API_BASE_URL}/api/notificaciones/cola`,
+        LIMPIAR: `${API_BASE_URL}/api/notificaciones/limpiar`,
+    },
 }
 
 // Exportar endpoints individuales para compatibilidad
@@ -124,7 +131,8 @@ export const {
     ASISTENCIAS, 
     PROYECTOS, 
     AULAS, 
-    USUARIOS 
+    USUARIOS,
+    NOTIFICACIONES
 } = API_ENDPOINTS
 
 export default API_BASE_URL

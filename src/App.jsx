@@ -20,6 +20,7 @@ import Perfil from '@paginas/Perfil/Perfil'
 import Proyectos from '@paginas/Proyectos/Proyectos'
 import Analisis from '@paginas/Analisis/Analisis'
 import { Auditoria } from '@paginas/Auditoria'
+import Notificaciones from '@paginas/Notificaciones/Notificaciones'
 
 function App() {
   return (
@@ -159,6 +160,16 @@ function App() {
           element={
             <RoleProtectedRoute moduloRequerido="auditoria">
               <Auditoria />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Notificaciones: ADMIN, DOCENTE */}
+        <Route 
+          path="notificaciones" 
+          element={
+            <RoleProtectedRoute moduloRequerido="notificaciones">
+              <Notificaciones />
             </RoleProtectedRoute>
           } 
         />
