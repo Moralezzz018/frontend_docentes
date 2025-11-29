@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
     Dialog,
     DialogTitle,
@@ -21,13 +21,35 @@ const CREDITOS = [3, 4]
 
 const ClaseDialog = ({ open, onClose, onSave, clase = null }) => {
     const [formData, setFormData] = useState({
-        codigo: clase?.codigo || '',
-        nombre: clase?.nombre || '',
-        creditos: clase?.creditos || 3,
-        diaSemana: clase?.diaSemana || [],
+        codigo: '',
+        nombre: '',
+        creditos: 3,
+        diaSemana: [],
     })
 
     const [errors, setErrors] = useState({})
+
+    // Actualizar formData cuando cambie clase o se abra el diálogo
+    useEffect(() => {
+        if (open) {
+            if (clase) {
+                setFormData({
+                    codigo: clase.codigo || '',
+                    nombre: clase.nombre || '',
+                    creditos: clase.creditos || 3,
+                    diaSemana: clase.diaSemana || [],
+                })
+            } else {
+                setFormData({
+                    codigo: '',
+                    nombre: '',
+                    creditos: 3,
+                    diaSemana: [],
+                })
+            }
+            setErrors({})
+        }
+    }, [open, clase])
 
     const handleChange = (e) => {
         const { name, value } = e.target

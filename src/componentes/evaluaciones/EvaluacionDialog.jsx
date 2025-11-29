@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
     Dialog,
     DialogTitle,
@@ -16,20 +16,56 @@ const ESTADOS = ['ACTIVO', 'INACTIVO']
 
 const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales = [], periodos = [], clases = [], secciones = [] }) => {
     const [formData, setFormData] = useState({
-        titulo: evaluacion?.titulo || '',
-        fechaInicio: evaluacion?.fechaInicio ? evaluacion.fechaInicio.substring(0, 16) : '',
-        fechaCierre: evaluacion?.fechaCierre ? evaluacion.fechaCierre.substring(0, 16) : '',
-        notaMaxima: evaluacion?.notaMaxima || 100,
-        tipo: evaluacion?.tipo || 'NORMAL',
-        estado: evaluacion?.estado || 'ACTIVO',
-        parcialId: evaluacion?.parcialId || '',
-        periodoId: evaluacion?.periodoId || '',
-        claseId: evaluacion?.claseId || '',
-        seccionId: evaluacion?.seccionId || '',
-        descripcion: evaluacion?.estructura?.descripcion || '',
+        titulo: '',
+        fechaInicio: '',
+        fechaCierre: '',
+        notaMaxima: 100,
+        tipo: 'NORMAL',
+        estado: 'ACTIVO',
+        parcialId: '',
+        periodoId: '',
+        claseId: '',
+        seccionId: '',
+        descripcion: '',
     })
 
     const [errors, setErrors] = useState({})
+
+    // Actualizar formData cuando cambie evaluacion o se abra el diálogo
+    useEffect(() => {
+        if (open) {
+            if (evaluacion) {
+                setFormData({
+                    titulo: evaluacion.titulo || '',
+                    fechaInicio: evaluacion.fechaInicio ? evaluacion.fechaInicio.substring(0, 16) : '',
+                    fechaCierre: evaluacion.fechaCierre ? evaluacion.fechaCierre.substring(0, 16) : '',
+                    notaMaxima: evaluacion.notaMaxima || 100,
+                    tipo: evaluacion.tipo || 'NORMAL',
+                    estado: evaluacion.estado || 'ACTIVO',
+                    parcialId: evaluacion.parcialId || '',
+                    periodoId: evaluacion.periodoId || '',
+                    claseId: evaluacion.claseId || '',
+                    seccionId: evaluacion.seccionId || '',
+                    descripcion: evaluacion.estructura?.descripcion || '',
+                })
+            } else {
+                setFormData({
+                    titulo: '',
+                    fechaInicio: '',
+                    fechaCierre: '',
+                    notaMaxima: 100,
+                    tipo: 'NORMAL',
+                    estado: 'ACTIVO',
+                    parcialId: '',
+                    periodoId: '',
+                    claseId: '',
+                    seccionId: '',
+                    descripcion: '',
+                })
+            }
+            setErrors({})
+        }
+    }, [open, evaluacion])
     
     // Filtrar parciales según el periodo seleccionado
     const parcialesFiltrados = formData.periodoId 

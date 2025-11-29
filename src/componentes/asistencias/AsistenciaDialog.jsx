@@ -28,26 +28,45 @@ const AsistenciaDialog = ({
     const esEstudiante = isEstudiante()
     
     const [formData, setFormData] = useState({
-        estudianteId: asistencia?.estudianteId || '',
-        claseId: asistencia?.claseId || '',
-        periodoId: asistencia?.periodoId || '',
-        parcialId: asistencia?.parcialId || '',
-        fecha: asistencia?.fecha ? new Date(asistencia.fecha).toISOString().substring(0, 16) : '',
-        estado: asistencia?.estado || 'PRESENTE',
-        descripcion: asistencia?.descripcion || '',
+        estudianteId: '',
+        claseId: '',
+        periodoId: '',
+        parcialId: '',
+        fecha: '',
+        estado: 'PRESENTE',
+        descripcion: '',
     })
 
     const [errors, setErrors] = useState({})
     
-    // Si es estudiante, establecer automáticamente su ID
+    // Actualizar formData cuando cambie asistencia o se abra el diálogo
     useEffect(() => {
-        if (esEstudiante && user?.estudianteId && !asistencia) {
-            setFormData(prev => ({
-                ...prev,
-                estudianteId: user.estudianteId
-            }))
+        if (open) {
+            if (asistencia) {
+                setFormData({
+                    estudianteId: asistencia.estudianteId || '',
+                    claseId: asistencia.claseId || '',
+                    periodoId: asistencia.periodoId || '',
+                    parcialId: asistencia.parcialId || '',
+                    fecha: asistencia.fecha ? new Date(asistencia.fecha).toISOString().substring(0, 16) : '',
+                    estado: asistencia.estado || 'PRESENTE',
+                    descripcion: asistencia.descripcion || '',
+                })
+            } else {
+                // Si es nuevo registro
+                setFormData({
+                    estudianteId: esEstudiante && user?.estudianteId ? user.estudianteId : '',
+                    claseId: '',
+                    periodoId: '',
+                    parcialId: '',
+                    fecha: '',
+                    estado: 'PRESENTE',
+                    descripcion: '',
+                })
+            }
+            setErrors({})
         }
-    }, [esEstudiante, user, asistencia])
+    }, [open, asistencia, esEstudiante, user])
 
     // Filtrar parciales según el periodo seleccionado
     const parcialesFiltrados = formData.periodoId 

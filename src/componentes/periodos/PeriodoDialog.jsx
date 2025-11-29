@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
     Dialog,
     DialogTitle,
@@ -11,12 +11,32 @@ import {
 
 const PeriodoDialog = ({ open, onClose, onSave, periodo = null }) => {
     const [formData, setFormData] = useState({
-        nombre: periodo?.nombre || '',
-        fechaInicio: periodo?.fechaInicio ? new Date(periodo.fechaInicio).toISOString().substring(0, 10) : '',
-        fechaFin: periodo?.fechaFin ? new Date(periodo.fechaFin).toISOString().substring(0, 10) : '',
+        nombre: '',
+        fechaInicio: '',
+        fechaFin: '',
     })
 
     const [errors, setErrors] = useState({})
+
+    // Actualizar formData cuando cambie periodo o se abra el diálogo
+    useEffect(() => {
+        if (open) {
+            if (periodo) {
+                setFormData({
+                    nombre: periodo.nombre || '',
+                    fechaInicio: periodo.fechaInicio ? new Date(periodo.fechaInicio).toISOString().substring(0, 10) : '',
+                    fechaFin: periodo.fechaFin ? new Date(periodo.fechaFin).toISOString().substring(0, 10) : '',
+                })
+            } else {
+                setFormData({
+                    nombre: '',
+                    fechaInicio: '',
+                    fechaFin: '',
+                })
+            }
+            setErrors({})
+        }
+    }, [open, periodo])
 
     const handleChange = (e) => {
         const { name, value } = e.target

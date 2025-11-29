@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
     Dialog,
     DialogTitle,
@@ -12,13 +12,35 @@ import {
 
 const ParcialDialog = ({ open, onClose, onSave, parcial = null, periodos = [] }) => {
     const [formData, setFormData] = useState({
-        nombre: parcial?.nombre || '',
-        fechaInicio: parcial?.fechaInicio ? new Date(parcial.fechaInicio).toISOString().substring(0, 10) : '',
-        fechaFin: parcial?.fechaFin ? new Date(parcial.fechaFin).toISOString().substring(0, 10) : '',
-        periodoId: parcial?.periodoId || '',
+        nombre: '',
+        fechaInicio: '',
+        fechaFin: '',
+        periodoId: '',
     })
 
     const [errors, setErrors] = useState({})
+
+    // Actualizar formData cuando cambie parcial o se abra el diálogo
+    useEffect(() => {
+        if (open) {
+            if (parcial) {
+                setFormData({
+                    nombre: parcial.nombre || '',
+                    fechaInicio: parcial.fechaInicio ? new Date(parcial.fechaInicio).toISOString().substring(0, 10) : '',
+                    fechaFin: parcial.fechaFin ? new Date(parcial.fechaFin).toISOString().substring(0, 10) : '',
+                    periodoId: parcial.periodoId || '',
+                })
+            } else {
+                setFormData({
+                    nombre: '',
+                    fechaInicio: '',
+                    fechaFin: '',
+                    periodoId: '',
+                })
+            }
+            setErrors({})
+        }
+    }, [open, parcial])
 
     const handleChange = (e) => {
         const { name, value } = e.target
