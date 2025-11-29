@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
     Dialog,
     DialogTitle,
@@ -10,6 +10,7 @@ import {
     Grid,
     FormHelperText,
 } from '@mui/material'
+import { useAuthStore } from '@almacen/authStore'
 
 const ESTADOS = ['PRESENTE', 'AUSENTE', 'TARDANZA']
 
@@ -23,6 +24,9 @@ const AsistenciaDialog = ({
     periodos = [], 
     parciales = [] 
 }) => {
+    const { user, isEstudiante } = useAuthStore()
+    const esEstudiante = isEstudiante()
+    
     const [formData, setFormData] = useState({
         estudianteId: asistencia?.estudianteId || '',
         claseId: asistencia?.claseId || '',
@@ -34,11 +38,47 @@ const AsistenciaDialog = ({
     })
 
     const [errors, setErrors] = useState({})
+    
+    // Si es estudiante, establecer automáticamente su ID
+    useEffect(() => {
+        if (esEstudiante && user?.estudianteId && !asistencia) {
+            setFormData(prev => ({
+                ...prev,
+                estudianteId: user.estudianteId
+            }))
+        }
+    }, [esEstudiante, user, asistencia])
 
     // Filtrar parciales según el periodo seleccionado
     const parcialesFiltrados = formData.periodoId 
         ? parciales.filter(parcial => parcial.periodoId === parseInt(formData.periodoId))
         : parciales
+
+    // Filtrar estudiantes según la clase seleccionada
+    const estudiantesFiltrados = formData.claseId 
+        ? estudiantes.filter(estudiante => {
+            // Debug: Ver estructura de datos (remover después)
+            if (estudiante.id === 1 && formData.claseId) {
+                console.log('DEBUG - Estructura del primer estudiante:', {
+                    id: estudiante.id,
+                    nombre: estudiante.nombre,
+                    inscripciones: estudiante.inscripciones,
+                    claseSeleccionada: formData.claseId
+                })
+            }
+            
+            // Verificar si el estudiante tiene inscripciones en la clase seleccionada
+            if (!estudiante.inscripciones || !Array.isArray(estudiante.inscripciones)) {
+                return false
+            }
+            
+            return estudiante.inscripciones.some(inscripcion => {
+                // La inscripción puede tener claseId directamente o en inscripcion.clase.id
+                const claseIdInscripcion = inscripcion.claseId || inscripcion.clase?.id
+                return claseIdInscripcion === parseInt(formData.claseId)
+            })
+        })
+        : estudiantes
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -47,6 +87,11 @@ const AsistenciaDialog = ({
         // Si cambia el periodo, limpiar el parcial seleccionado
         if (name === 'periodoId') {
             updates.parcialId = ''
+        }
+        
+        // Si cambia la clase, limpiar el estudiante seleccionado
+        if (name === 'claseId') {
+            updates.estudianteId = ''
         }
         
         setFormData(prev => ({
@@ -113,27 +158,36 @@ const AsistenciaDialog = ({
             </DialogTitle>
             <DialogContent>
                 <Grid container spacing={2} sx={{ mt: 1 }}>
-                    <Grid item xs={12} sm={6}>
-                        <TextField
-                            fullWidth
-                            select
-                            label="Estudiante"
-                            name="estudianteId"
-                            value={formData.estudianteId}
-                            onChange={handleChange}
-                            error={!!errors.estudianteId}
-                            helperText={errors.estudianteId}
-                            required
-                        >
-                            {Array.isArray(estudiantes) && estudiantes.map((estudiante) => (
-                                <MenuItem key={estudiante.id} value={estudiante.id}>
-                                    {estudiante.nombre}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                    </Grid>
+                    {/* Solo mostrar selector de estudiante si NO es estudiante logueado */}
+                    {!esEstudiante && (
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                select
+                                label="Estudiante"
+                                name="estudianteId"
+                                value={formData.estudianteId}
+                                onChange={handleChange}
+                                error={!!errors.estudianteId}
+                                helperText={errors.estudianteId || (formData.claseId ? "Estudiantes inscritos en la clase seleccionada" : "Primero seleccione una clase")}
+                                required
+                                disabled={!formData.claseId}
+                            >
+                                {Array.isArray(estudiantesFiltrados) && estudiantesFiltrados.map((estudiante) => (
+                                    <MenuItem key={estudiante.id} value={estudiante.id}>
+                                        {estudiante.nombre}
+                                    </MenuItem>
+                                ))}
+                                {formData.claseId && estudiantesFiltrados.length === 0 && (
+                                    <MenuItem value="" disabled>
+                                        No hay estudiantes inscritos en esta clase
+                                    </MenuItem>
+                                )}
+                            </TextField>
+                        </Grid>
+                    )}
 
-                    <Grid item xs={12} sm={6}>
+                    <Grid item xs={12} sm={esEstudiante ? 12 : 6}>
                         <TextField
                             fullWidth
                             select
@@ -221,7 +275,8 @@ const AsistenciaDialog = ({
                             helperText={errors.estado}
                             required
                         >
-                            {ESTADOS.map((estado) => (
+                            {/* Estudiantes solo pueden marcar PRESENTE o AUSENTE */}
+                            {(esEstudiante ? ['PRESENTE', 'AUSENTE'] : ESTADOS).map((estado) => (
                                 <MenuItem key={estado} value={estado}>
                                     {estado}
                                 </MenuItem>
