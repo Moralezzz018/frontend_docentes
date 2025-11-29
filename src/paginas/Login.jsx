@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import {
     Container,
     Paper,
@@ -8,13 +8,21 @@ import {
     Typography,
     Box,
     Alert,
+    InputAdornment,
+    IconButton,
+    Link,
 } from '@mui/material'
+import PersonIcon from '@mui/icons-material/Person'
+import LockIcon from '@mui/icons-material/Lock'
+import Visibility from '@mui/icons-material/Visibility'
+import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import { useAuthStore } from '@almacen/authStore'
 
 const Login = () => {
     const [credentials, setCredentials] = useState({ login: '', contrasena: '' })
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
     const navigate = useNavigate()
     const login = useAuthStore((state) => state.login)
 
@@ -77,17 +85,42 @@ const Login = () => {
                             required
                             autoFocus
                             variant="outlined"
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <PersonIcon color="action" />
+                                    </InputAdornment>
+                                ),
+                            }}
                         />
                         <TextField
                             fullWidth
                             label="Contraseña"
                             name="contrasena"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             value={credentials.contrasena}
                             onChange={handleChange}
                             margin="normal"
                             required
                             variant="outlined"
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <LockIcon color="action" />
+                                    </InputAdornment>
+                                ),
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            edge="end"
+                                            tabIndex={-1}
+                                        >
+                                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }}
                         />
                         <Button
                             type="submit"
@@ -104,6 +137,25 @@ const Login = () => {
                         >
                             {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
                         </Button>
+
+                        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Link 
+                                component={RouterLink} 
+                                to="/recuperar-contrasena" 
+                                variant="body2"
+                                underline="hover"
+                            >
+                                ¿Olvidaste tu contraseña?
+                            </Link>
+                            <Link 
+                                component={RouterLink} 
+                                to="/registro" 
+                                variant="body2"
+                                underline="hover"
+                            >
+                                Crear cuenta
+                            </Link>
+                        </Box>
                     </form>
                 </Paper>
             </Box>

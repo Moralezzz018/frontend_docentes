@@ -12,6 +12,12 @@ export const authService = {
     return response.data
   },
 
+  // Registro
+  register: async (userData) => {
+    const response = await apiClient.post(API_ENDPOINTS.AUTH.REGISTER, userData)
+    return response.data
+  },
+
   // Logout
   logout: () => {
     localStorage.removeItem('token')
@@ -27,5 +33,27 @@ export const authService = {
   // Verificar si está autenticado
   isAuthenticated: () => {
     return !!localStorage.getItem('token')
+  },
+
+  // Solicitar restablecimiento de contraseña
+  solicitarRestablecimiento: async (correo) => {
+    const response = await apiClient.post(API_ENDPOINTS.AUTH.SOLICITAR_RESTABLECIMIENTO, { correo })
+    return response.data
+  },
+
+  // Validar PIN de recuperación
+  validarPin: async (correo, pin) => {
+    const response = await apiClient.post(API_ENDPOINTS.AUTH.VALIDAR_PIN, { correo, pin })
+    return response.data
+  },
+
+  // Restablecer contraseña con token
+  restablecerContrasena: async (token, contrasena) => {
+    const response = await apiClient.post(
+      API_ENDPOINTS.AUTH.RESTABLECER_CONTRASENA,
+      { contrasena },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    return response.data
   },
 }

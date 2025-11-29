@@ -3,6 +3,8 @@ import MainLayout from '@componentes/layout/MainLayout'
 import { ProtectedRoute } from '@componentes/auth/ProtectedRoute'
 import { RoleProtectedRoute } from '@componentes/auth/RoleProtectedRoute'
 import Login from '@paginas/Login'
+import Registro from '@paginas/Registro'
+import RecuperarContrasena from '@paginas/RecuperarContrasena'
 import Dashboard from '@paginas/Dashboard'
 import Evaluaciones from '@paginas/Evaluaciones/Evaluaciones'
 import Estudiantes from '@paginas/Estudiantes/Estudiantes'
@@ -18,7 +20,10 @@ import Perfil from '@paginas/Perfil/Perfil'
 function App() {
   return (
     <Routes>
+      {/* Rutas públicas */}
       <Route path="/login" element={<Login />} />
+      <Route path="/registro" element={<Registro />} />
+      <Route path="/recuperar-contrasena" element={<RecuperarContrasena />} />
       
       <Route
         path="/"

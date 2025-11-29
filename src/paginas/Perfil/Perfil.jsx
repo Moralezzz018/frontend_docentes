@@ -14,12 +14,19 @@ import {
     Snackbar,
     Alert,
     TextField,
+    InputAdornment,
+    Divider,
 } from '@mui/material'
 import PhotoCamera from '@mui/icons-material/PhotoCamera'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import SaveIcon from '@mui/icons-material/Save'
 import CancelIcon from '@mui/icons-material/Cancel'
+import PersonIcon from '@mui/icons-material/Person'
+import EmailIcon from '@mui/icons-material/Email'
+import LockIcon from '@mui/icons-material/Lock'
+import Visibility from '@mui/icons-material/Visibility'
+import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import LoadingSpinner from '@componentes/common/LoadingSpinner'
 import ErrorMessage from '@componentes/common/ErrorMessage'
 import ConfirmDialog from '@componentes/common/ConfirmDialog'
@@ -41,6 +48,16 @@ const Perfil = () => {
         login: user?.login || '',
         correo: user?.correo || '',
     })
+    const [isEditingProfile, setIsEditingProfile] = useState(false)
+    const [editProfileData, setEditProfileData] = useState({
+        login: '',
+        correo: '',
+        contrasena: '',
+        confirmarContrasena: '',
+    })
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const [profileErrors, setProfileErrors] = useState({})
 
     const cargarImagenes = async () => {
         if (!user?.id) return
@@ -81,7 +98,132 @@ const Perfil = () => {
 
     useEffect(() => {
         cargarImagenes()
+        if (user) {
+            setProfileData({
+                login: user.login || '',
+                correo: user.correo || '',
+            })
+        }
     }, [user?.id])
+
+    const handleEditProfileClick = () => {
+        setEditProfileData({
+            login: profileData.login,
+            correo: profileData.correo,
+            contrasena: '',
+            confirmarContrasena: '',
+        })
+        setProfileErrors({})
+        setIsEditingProfile(true)
+    }
+
+    const handleCancelEdit = () => {
+        setIsEditingProfile(false)
+        setEditProfileData({
+            login: '',
+            correo: '',
+            contrasena: '',
+            confirmarContrasena: '',
+        })
+        setProfileErrors({})
+        setShowPassword(false)
+        setShowConfirmPassword(false)
+    }
+
+    const handleProfileChange = (e) => {
+        const { name, value } = e.target
+        setEditProfileData({
+            ...editProfileData,
+            [name]: value,
+        })
+        // Limpiar error del campo al editar
+        if (profileErrors[name]) {
+            setProfileErrors({
+                ...profileErrors,
+                [name]: '',
+            })
+        }
+    }
+
+    const validateProfileForm = () => {
+        const errors = {}
+
+        if (!editProfileData.login.trim()) {
+            errors.login = 'El login es requerido'
+        } else if (editProfileData.login.length < 3) {
+            errors.login = 'El login debe tener al menos 3 caracteres'
+        }
+
+        if (!editProfileData.correo.trim()) {
+            errors.correo = 'El correo es requerido'
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editProfileData.correo)) {
+            errors.correo = 'El correo no es válido'
+        }
+
+        // Solo validar contraseña si se está cambiando
+        if (editProfileData.contrasena) {
+            if (editProfileData.contrasena.length < 6) {
+                errors.contrasena = 'La contraseña debe tener al menos 6 caracteres'
+            }
+            if (editProfileData.contrasena !== editProfileData.confirmarContrasena) {
+                errors.confirmarContrasena = 'Las contraseñas no coinciden'
+            }
+        }
+
+        setProfileErrors(errors)
+        return Object.keys(errors).length === 0
+    }
+
+    const handleSaveProfile = async () => {
+        if (!validateProfileForm()) {
+            return
+        }
+
+        try {
+            const dataToUpdate = {
+                login: editProfileData.login,
+                correo: editProfileData.correo,
+            }
+
+            // Solo incluir contraseña si se está cambiando
+            if (editProfileData.contrasena) {
+                dataToUpdate.contrasena = editProfileData.contrasena
+            }
+
+            await usuariosService.editar(user.id, dataToUpdate)
+            
+            // Actualizar el store y el estado local
+            const updatedUser = {
+                ...user,
+                login: editProfileData.login,
+                correo: editProfileData.correo,
+            }
+            updateUser(updatedUser)
+            setProfileData({
+                login: editProfileData.login,
+                correo: editProfileData.correo,
+            })
+
+            setSnackbar({ 
+                open: true, 
+                message: 'Perfil actualizado exitosamente', 
+                severity: 'success' 
+            })
+            setIsEditingProfile(false)
+            handleCancelEdit()
+        } catch (err) {
+            console.error('Error al actualizar perfil:', err)
+            const errorMsg = err.response?.data?.mensaje 
+                || err.response?.data?.error
+                || err.response?.data?.errores?.[0]?.msg
+                || 'Error al actualizar el perfil'
+            setSnackbar({ 
+                open: true, 
+                message: errorMsg, 
+                severity: 'error' 
+            })
+        }
+    }
 
     const handleFileSelect = async (event) => {
         const file = event.target.files[0]
@@ -258,28 +400,184 @@ const Perfil = () => {
                             {!imagenPrincipal && user?.login?.charAt(0).toUpperCase()}
                         </Avatar>
                         
-                        <Typography variant="h5" gutterBottom>
-                            {profileData.login}
-                        </Typography>
-                        
-                        <Typography variant="body2" color="text.secondary" gutterBottom>
-                            {profileData.correo}
-                        </Typography>
+                        {!isEditingProfile ? (
+                            <>
+                                <Typography variant="h5" gutterBottom>
+                                    {profileData.login}
+                                </Typography>
+                                
+                                <Typography variant="body2" color="text.secondary" gutterBottom>
+                                    {profileData.correo}
+                                </Typography>
+                                
+                                <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
+                                    Rol: {user?.rol?.nombre || 'Sin rol'}
+                                </Typography>
 
-                        <Button
-                            variant="contained"
-                            component="label"
-                            startIcon={<PhotoCamera />}
-                            sx={{ mt: 2 }}
-                        >
-                            Subir Foto
-                            <input
-                                type="file"
-                                hidden
-                                accept="image/jpeg,image/jpg,image/png,image/gif"
-                                onChange={handleFileSelect}
-                            />
-                        </Button>
+                                <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                    <Button
+                                        variant="contained"
+                                        component="label"
+                                        startIcon={<PhotoCamera />}
+                                    >
+                                        Subir Foto
+                                        <input
+                                            type="file"
+                                            hidden
+                                            accept="image/jpeg,image/jpg,image/png,image/gif"
+                                            onChange={handleFileSelect}
+                                        />
+                                    </Button>
+                                    <Button
+                                        variant="outlined"
+                                        startIcon={<EditIcon />}
+                                        onClick={handleEditProfileClick}
+                                    >
+                                        Editar Perfil
+                                    </Button>
+                                </Box>
+                            </>
+                        ) : (
+                            <Box sx={{ mt: 2 }}>
+                                <Typography variant="h6" gutterBottom>
+                                    Editar Información
+                                </Typography>
+                                <Divider sx={{ mb: 2 }} />
+                                
+                                <TextField
+                                    fullWidth
+                                    label="Usuario"
+                                    name="login"
+                                    value={editProfileData.login}
+                                    onChange={handleProfileChange}
+                                    margin="dense"
+                                    size="small"
+                                    required
+                                    error={!!profileErrors.login}
+                                    helperText={profileErrors.login || 'Mínimo 3 caracteres'}
+                                    inputProps={{ maxLength: 50 }}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <PersonIcon fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+
+                                <TextField
+                                    fullWidth
+                                    label="Correo"
+                                    name="correo"
+                                    type="email"
+                                    value={editProfileData.correo}
+                                    onChange={handleProfileChange}
+                                    margin="dense"
+                                    size="small"
+                                    required
+                                    error={!!profileErrors.correo}
+                                    helperText={profileErrors.correo}
+                                    inputProps={{ maxLength: 150 }}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <EmailIcon fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+
+                                <Divider sx={{ my: 2 }}>
+                                    <Typography variant="caption" color="text.secondary">
+                                        Cambiar contraseña (opcional)
+                                    </Typography>
+                                </Divider>
+
+                                <TextField
+                                    fullWidth
+                                    label="Nueva Contraseña"
+                                    name="contrasena"
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={editProfileData.contrasena}
+                                    onChange={handleProfileChange}
+                                    margin="dense"
+                                    size="small"
+                                    error={!!profileErrors.contrasena}
+                                    helperText={profileErrors.contrasena || 'Dejar vacío para no cambiar'}
+                                    inputProps={{ maxLength: 250 }}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <LockIcon fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    edge="end"
+                                                >
+                                                    {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+
+                                {editProfileData.contrasena && (
+                                    <TextField
+                                        fullWidth
+                                        label="Confirmar Contraseña"
+                                        name="confirmarContrasena"
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        value={editProfileData.confirmarContrasena}
+                                        onChange={handleProfileChange}
+                                        margin="dense"
+                                        size="small"
+                                        error={!!profileErrors.confirmarContrasena}
+                                        helperText={profileErrors.confirmarContrasena}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <LockIcon fontSize="small" />
+                                                </InputAdornment>
+                                            ),
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                        edge="end"
+                                                    >
+                                                        {showConfirmPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                    />
+                                )}
+
+                                <Box sx={{ mt: 3, display: 'flex', gap: 1 }}>
+                                    <Button
+                                        fullWidth
+                                        variant="contained"
+                                        startIcon={<SaveIcon />}
+                                        onClick={handleSaveProfile}
+                                    >
+                                        Guardar
+                                    </Button>
+                                    <Button
+                                        fullWidth
+                                        variant="outlined"
+                                        startIcon={<CancelIcon />}
+                                        onClick={handleCancelEdit}
+                                    >
+                                        Cancelar
+                                    </Button>
+                                </Box>
+                            </Box>
+                        )}
                     </Paper>
                 </Grid>
 

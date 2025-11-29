@@ -4,8 +4,11 @@ export const API_ENDPOINTS = {
     // Autenticación
     AUTH: {
         LOGIN: `${API_BASE_URL}/api/usuarios/iniciar-sesion`,
-        REGISTER: `${API_BASE_URL}/api/usuarios/registrar`,
+        REGISTER: `${API_BASE_URL}/api/usuarios/guardar`,
         PROFILE: `${API_BASE_URL}/api/usuarios/perfil`,
+        SOLICITAR_RESTABLECIMIENTO: `${API_BASE_URL}/api/usuarios/solicitar-restablecimiento`,
+        VALIDAR_PIN: `${API_BASE_URL}/api/usuarios/validar-pin`,
+        RESTABLECER_CONTRASENA: `${API_BASE_URL}/api/usuarios/restablecer-contrasena`,
     },
 
     // Evaluaciones
