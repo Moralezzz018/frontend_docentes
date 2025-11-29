@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import MainLayout from '@componentes/layout/MainLayout'
 import { ProtectedRoute } from '@componentes/auth/ProtectedRoute'
 import { RoleProtectedRoute } from '@componentes/auth/RoleProtectedRoute'
+import { InactivityWarning } from '@componentes/common/InactivityWarning'
 import Login from '@paginas/Login'
 import Registro from '@paginas/Registro'
 import RecuperarContrasena from '@paginas/RecuperarContrasena'
@@ -19,9 +20,13 @@ import Perfil from '@paginas/Perfil/Perfil'
 
 function App() {
   return (
-    <Routes>
-      {/* Rutas públicas */}
-      <Route path="/login" element={<Login />} />
+    <>
+      {/* Componente que monitorea inactividad y muestra advertencia */}
+      <InactivityWarning timeout={5 * 60 * 1000} warningTime={30 * 1000} />
+      
+      <Routes>
+        {/* Rutas públicas */}
+        <Route path="/login" element={<Login />} />
       <Route path="/registro" element={<Registro />} />
       <Route path="/recuperar-contrasena" element={<RecuperarContrasena />} />
       
@@ -150,7 +155,8 @@ function App() {
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </>
   )
 }
 
