@@ -10,8 +10,6 @@ const CargandoDatos = ({
     altura = 200,
     filas = 5
 }) => {
-    console.log('CargandoDatos - Renderizando:', { tipo, mensaje, filas })
-
     if (tipo === 'skeleton') {
         return (
             <Box sx={{ width: '100%', py: 2 }}>
