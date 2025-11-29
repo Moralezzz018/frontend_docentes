@@ -73,6 +73,11 @@ const Asistencias = () => {
             setLoading(true)
             setError(null)
             
+            console.log('=== INICIO CARGA DE DATOS ===')
+            console.log('Usuario actual:', user)
+            console.log('¿Es estudiante?:', esEstudiante)
+            console.log('ID del estudiante:', user?.estudianteId)
+            
             const [asistenciasData, estudiantesData, clasesData, periodosData, parcialesData] = await Promise.allSettled([
                 asistenciasService.listar(),
                 estudiantesService.listar(),
@@ -80,6 +85,9 @@ const Asistencias = () => {
                 periodosService.listar(),
                 parcialesService.listar(),
             ])
+            
+            console.log('Estudiantes cargados:', estudiantesData.status === 'fulfilled' ? estudiantesData.value.length : 'Error')
+            console.log('Clases cargadas:', clasesData.status === 'fulfilled' ? clasesData.value.length : 'Error')
             
             if (asistenciasData.status === 'fulfilled' && Array.isArray(asistenciasData.value)) {
                 setAsistencias(asistenciasData.value)
@@ -96,29 +104,56 @@ const Asistencias = () => {
             }
             
             if (clasesData.status === 'fulfilled' && Array.isArray(clasesData.value)) {
+                console.log('=== PROCESANDO CLASES ===')
+                console.log('¿Es estudiante?:', esEstudiante)
+                console.log('¿Tiene estudianteId?:', user?.estudianteId)
+                console.log('¿Estudiantes cargados?:', estudiantesData.status === 'fulfilled')
+                
                 // Si es estudiante, filtrar solo las clases en las que está inscrito
                 if (esEstudiante && user?.estudianteId && estudiantesData.status === 'fulfilled') {
+                    console.log('→ FILTRANDO CLASES PARA ESTUDIANTE')
+                    
                     // Obtener el estudiante con sus inscripciones
                     const estudianteActual = estudiantesData.value?.find(
                         est => est.id === user.estudianteId
                     )
                     
+                    console.log('Estudiante encontrado:', estudianteActual)
+                    console.log('Número de inscripciones:', estudianteActual?.inscripciones?.length || 0)
+                    console.log('Inscripciones completas:', JSON.stringify(estudianteActual?.inscripciones, null, 2))
+                    
                     if (estudianteActual?.inscripciones && Array.isArray(estudianteActual.inscripciones)) {
                         // Extraer los IDs de las clases inscritas
-                        const clasesInscritasIds = estudianteActual.inscripciones.map(
-                            insc => insc.claseId
-                        )
+                        const clasesInscritasIds = estudianteActual.inscripciones
+                            .map(insc => {
+                                const claseId = insc.clase?.id
+                                console.log('→ Inscripción:', insc.id, '| Clase ID:', claseId, '| Clase:', insc.clase?.nombre)
+                                return claseId
+                            })
+                            .filter(id => id !== undefined && id !== null)
+                        
+                        console.log('IDs extraídos de clases inscritas:', clasesInscritasIds)
+                        console.log('Total clases disponibles:', clasesData.value.length)
+                        console.log('IDs de todas las clases:', clasesData.value.map(c => c.id))
                         
                         // Filtrar solo las clases en las que está inscrito
                         const clasesInscritas = clasesData.value.filter(
-                            clase => clasesInscritasIds.includes(clase.id)
+                            clase => {
+                                const incluido = clasesInscritasIds.includes(clase.id)
+                                console.log(`→ Clase ${clase.id} (${clase.nombre}): ${incluido ? 'INCLUIDA' : 'EXCLUIDA'}`)
+                                return incluido
+                            }
                         )
+                        
+                        console.log('✅ RESULTADO: Clases filtradas:', clasesInscritas.length)
+                        console.log('Clases filtradas:', clasesInscritas.map(c => `${c.id} - ${c.nombre}`))
                         setClases(clasesInscritas)
                     } else {
-                        // Si no tiene inscripciones, mostrar array vacío
+                        console.warn('⚠️ El estudiante no tiene inscripciones')
                         setClases([])
                     }
                 } else {
+                    console.log('→ MOSTRANDO TODAS LAS CLASES (Docente o Admin)')
                     // Si es docente o admin, mostrar todas las clases
                     setClases(clasesData.value)
                 }

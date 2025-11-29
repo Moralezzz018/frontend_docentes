@@ -54,23 +54,10 @@ const AsistenciaDialog = ({
         ? parciales.filter(parcial => parcial.periodoId === parseInt(formData.periodoId))
         : parciales
 
-    // Filtrar clases para estudiantes: solo mostrar clases en las que está inscrito
-    const clasesFiltradas = (esEstudiante && user?.estudianteId)
-        ? clases.filter(clase => {
-            // Buscar al estudiante actual en la lista de estudiantes
-            const estudianteActual = estudiantes.find(est => est.id === user.estudianteId)
-            
-            if (!estudianteActual?.inscripciones || !Array.isArray(estudianteActual.inscripciones)) {
-                return false
-            }
-            
-            // Verificar si tiene inscripción en esta clase
-            return estudianteActual.inscripciones.some(inscripcion => {
-                const claseIdInscripcion = inscripcion.claseId || inscripcion.clase?.id
-                return claseIdInscripcion === clase.id
-            })
-        })
-        : clases
+    // Las clases ya vienen filtradas desde el padre (Asistencias.jsx)
+    // Para estudiantes: solo sus clases inscritas
+    // Para docentes: todas las clases
+    const clasesFiltradas = clases
 
     // Filtrar estudiantes según la clase seleccionada (solo para docentes)
     const estudiantesFiltrados = formData.claseId 
@@ -81,8 +68,8 @@ const AsistenciaDialog = ({
             }
             
             return estudiante.inscripciones.some(inscripcion => {
-                // La inscripción puede tener claseId directamente o en inscripcion.clase.id
-                const claseIdInscripcion = inscripcion.claseId || inscripcion.clase?.id
+                // La estructura del backend es: inscripcion.clase.id
+                const claseIdInscripcion = inscripcion.clase?.id
                 return claseIdInscripcion === parseInt(formData.claseId)
             })
         })
