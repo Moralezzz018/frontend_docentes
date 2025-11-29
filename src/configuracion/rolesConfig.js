@@ -30,7 +30,8 @@ export const MODULOS_POR_ROL = {
         'asistencias',
         'proyectos',
         'usuarios',
-        'analisis'
+        'analisis',
+        'auditoria'
     ],
     [ROLES.DOCENTE]: [
         'dashboard',

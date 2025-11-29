@@ -26,14 +26,6 @@ const EstadoContenido = ({
     onCerrarError,
     verificarVacio = true
 }) => {
-    // Debug: ver el estado actual
-    console.log('EstadoContenido - Estado:', { 
-        cargando, 
-        error: !!error, 
-        datosLength: Array.isArray(datos) ? datos.length : 'no es array',
-        verificarVacio 
-    })
-
     // Estado de carga
     if (cargando) {
         return (
