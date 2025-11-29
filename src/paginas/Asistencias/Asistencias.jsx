@@ -30,6 +30,7 @@ import ConfirmDialog from '@componentes/common/ConfirmDialog'
 import AsistenciaDialog from '@componentes/asistencias/AsistenciaDialog'
 import { asistenciasService } from '@servicios/asistenciasService'
 import { periodosService, parcialesService, clasesService } from '@servicios/catalogosService'
+import { useAuthStore } from '@almacen/authStore'
 
 // Importar servicio de estudiantes si existe
 const estudiantesService = {
@@ -42,6 +43,9 @@ const estudiantesService = {
 }
 
 const Asistencias = () => {
+    const { user, isEstudiante } = useAuthStore()
+    const esEstudiante = isEstudiante()
+    
     const [asistencias, setAsistencias] = useState([])
     const [estudiantes, setEstudiantes] = useState([])
     const [clases, setClases] = useState([])
@@ -69,6 +73,11 @@ const Asistencias = () => {
             setLoading(true)
             setError(null)
             
+            console.log('=== INICIO CARGA DE DATOS ===')
+            console.log('Usuario actual:', user)
+            console.log('¿Es estudiante?:', esEstudiante)
+            console.log('ID del estudiante:', user?.estudianteId)
+            
             const [asistenciasData, estudiantesData, clasesData, periodosData, parcialesData] = await Promise.allSettled([
                 asistenciasService.listar(),
                 estudiantesService.listar(),
@@ -76,6 +85,9 @@ const Asistencias = () => {
                 periodosService.listar(),
                 parcialesService.listar(),
             ])
+            
+            console.log('Estudiantes cargados:', estudiantesData.status === 'fulfilled' ? estudiantesData.value.length : 'Error')
+            console.log('Clases cargadas:', clasesData.status === 'fulfilled' ? clasesData.value.length : 'Error')
             
             if (asistenciasData.status === 'fulfilled' && Array.isArray(asistenciasData.value)) {
                 setAsistencias(asistenciasData.value)
@@ -92,7 +104,59 @@ const Asistencias = () => {
             }
             
             if (clasesData.status === 'fulfilled' && Array.isArray(clasesData.value)) {
-                setClases(clasesData.value)
+                console.log('=== PROCESANDO CLASES ===')
+                console.log('¿Es estudiante?:', esEstudiante)
+                console.log('¿Tiene estudianteId?:', user?.estudianteId)
+                console.log('¿Estudiantes cargados?:', estudiantesData.status === 'fulfilled')
+                
+                // Si es estudiante, filtrar solo las clases en las que está inscrito
+                if (esEstudiante && user?.estudianteId && estudiantesData.status === 'fulfilled') {
+                    console.log('→ FILTRANDO CLASES PARA ESTUDIANTE')
+                    
+                    // Obtener el estudiante con sus inscripciones
+                    const estudianteActual = estudiantesData.value?.find(
+                        est => est.id === user.estudianteId
+                    )
+                    
+                    console.log('Estudiante encontrado:', estudianteActual)
+                    console.log('Número de inscripciones:', estudianteActual?.inscripciones?.length || 0)
+                    console.log('Inscripciones completas:', JSON.stringify(estudianteActual?.inscripciones, null, 2))
+                    
+                    if (estudianteActual?.inscripciones && Array.isArray(estudianteActual.inscripciones)) {
+                        // Extraer los IDs de las clases inscritas
+                        const clasesInscritasIds = estudianteActual.inscripciones
+                            .map(insc => {
+                                const claseId = insc.clase?.id
+                                console.log('→ Inscripción:', insc.id, '| Clase ID:', claseId, '| Clase:', insc.clase?.nombre)
+                                return claseId
+                            })
+                            .filter(id => id !== undefined && id !== null)
+                        
+                        console.log('IDs extraídos de clases inscritas:', clasesInscritasIds)
+                        console.log('Total clases disponibles:', clasesData.value.length)
+                        console.log('IDs de todas las clases:', clasesData.value.map(c => c.id))
+                        
+                        // Filtrar solo las clases en las que está inscrito
+                        const clasesInscritas = clasesData.value.filter(
+                            clase => {
+                                const incluido = clasesInscritasIds.includes(clase.id)
+                                console.log(`→ Clase ${clase.id} (${clase.nombre}): ${incluido ? 'INCLUIDA' : 'EXCLUIDA'}`)
+                                return incluido
+                            }
+                        )
+                        
+                        console.log('✅ RESULTADO: Clases filtradas:', clasesInscritas.length)
+                        console.log('Clases filtradas:', clasesInscritas.map(c => `${c.id} - ${c.nombre}`))
+                        setClases(clasesInscritas)
+                    } else {
+                        console.warn('⚠️ El estudiante no tiene inscripciones')
+                        setClases([])
+                    }
+                } else {
+                    console.log('→ MOSTRANDO TODAS LAS CLASES (Docente o Admin)')
+                    // Si es docente o admin, mostrar todas las clases
+                    setClases(clasesData.value)
+                }
             } else {
                 console.error('Error cargando clases:', clasesData.reason)
                 setClases([])
@@ -204,6 +268,11 @@ const Asistencias = () => {
 
     // Filtrar asistencias en el frontend según los filtros seleccionados
     const asistenciasFiltradas = asistencias.filter(asistencia => {
+        // Si es estudiante, solo mostrar sus propias asistencias
+        if (esEstudiante && user?.estudianteId && asistencia.estudianteId !== user.estudianteId) {
+            return false
+        }
+        
         if (filtros.estudianteId && asistencia.estudianteId !== parseInt(filtros.estudianteId)) return false
         if (filtros.claseId && asistencia.claseId !== parseInt(filtros.claseId)) return false
         if (filtros.periodoId && asistencia.periodoId !== parseInt(filtros.periodoId)) return false
@@ -245,24 +314,27 @@ const Asistencias = () => {
                     Filtros
                 </Typography>
                 <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} md={3}>
-                        <TextField
-                            fullWidth
-                            select
-                            label="Estudiante"
-                            value={filtros.estudianteId}
-                            onChange={(e) => setFiltros({ ...filtros, estudianteId: e.target.value })}
-                            size="small"
-                        >
-                            <MenuItem value="">Todos</MenuItem>
-                            {Array.isArray(estudiantes) && estudiantes.map((estudiante) => (
-                                <MenuItem key={estudiante.id} value={estudiante.id}>
-                                    {estudiante.nombre}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
+                    {/* Ocultar filtro de estudiante si el usuario es estudiante */}
+                    {!esEstudiante && (
+                        <Grid item xs={12} sm={6} md={3}>
+                            <TextField
+                                fullWidth
+                                select
+                                label="Estudiante"
+                                value={filtros.estudianteId}
+                                onChange={(e) => setFiltros({ ...filtros, estudianteId: e.target.value })}
+                                size="small"
+                            >
+                                <MenuItem value="">Todos</MenuItem>
+                                {Array.isArray(estudiantes) && estudiantes.map((estudiante) => (
+                                    <MenuItem key={estudiante.id} value={estudiante.id}>
+                                        {estudiante.nombre}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                        </Grid>
+                    )}
+                    <Grid item xs={12} sm={6} md={esEstudiante ? 4 : 3}>
                         <TextField
                             fullWidth
                             select
@@ -279,7 +351,7 @@ const Asistencias = () => {
                             ))}
                         </TextField>
                     </Grid>
-                    <Grid item xs={12} sm={6} md={2}>
+                    <Grid item xs={12} sm={6} md={esEstudiante ? 3 : 2}>
                         <TextField
                             fullWidth
                             select
@@ -296,7 +368,7 @@ const Asistencias = () => {
                             ))}
                         </TextField>
                     </Grid>
-                    <Grid item xs={12} sm={6} md={2}>
+                    <Grid item xs={12} sm={6} md={esEstudiante ? 3 : 2}>
                         <TextField
                             fullWidth
                             select
@@ -359,20 +431,26 @@ const Asistencias = () => {
                                     <TableCell>{getEstadoChip(asistencia.estado)}</TableCell>
                                     <TableCell>{asistencia.descripcion || '-'}</TableCell>
                                     <TableCell align="center">
-                                        <IconButton 
-                                            size="small" 
-                                            color="primary"
-                                            onClick={() => handleOpenDialog(asistencia)}
-                                        >
-                                            <EditIcon />
-                                        </IconButton>
-                                        <IconButton 
-                                            size="small" 
-                                            color="error"
-                                            onClick={() => handleDeleteClick(asistencia)}
-                                        >
-                                            <DeleteIcon />
-                                        </IconButton>
+                                        {/* Estudiantes no pueden editar ni eliminar asistencias */}
+                                        {!esEstudiante && (
+                                            <>
+                                                <IconButton 
+                                                    size="small" 
+                                                    color="primary"
+                                                    onClick={() => handleOpenDialog(asistencia)}
+                                                >
+                                                    <EditIcon />
+                                                </IconButton>
+                                                <IconButton 
+                                                    size="small" 
+                                                    color="error"
+                                                    onClick={() => handleDeleteClick(asistencia)}
+                                                >
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </>
+                                        )}
+                                        {esEstudiante && '-'}
                                     </TableCell>
                                 </TableRow>
                             ))

@@ -51,6 +51,15 @@ const MensajeError = ({
 
         // Errores de permisos
         if (errorCode === 403) {
+            // Detectar si es un problema de clase no autorizada
+            if (errorStr.includes('clase') || errorData?.error?.includes('clase')) {
+                return {
+                    icono: LockOutlined,
+                    titulo: 'Clase no autorizada',
+                    mensaje: 'Solo puedes ver análisis de tus propias clases. Selecciona una clase donde seas el docente asignado.',
+                    severidad: 'warning'
+                }
+            }
             return {
                 icono: LockOutlined,
                 titulo: 'Acceso denegado',
