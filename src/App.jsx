@@ -19,6 +19,7 @@ import Usuarios from '@paginas/Usuarios/Usuarios'
 import Perfil from '@paginas/Perfil/Perfil'
 import Proyectos from '@paginas/Proyectos/Proyectos'
 import Analisis from '@paginas/Analisis/Analisis'
+import { Auditoria } from '@paginas/Auditoria'
 
 function App() {
   return (
@@ -148,6 +149,16 @@ function App() {
           element={
             <RoleProtectedRoute moduloRequerido="analisis">
               <Analisis />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Auditoría: SOLO ADMIN */}
+        <Route 
+          path="auditoria" 
+          element={
+            <RoleProtectedRoute moduloRequerido="auditoria">
+              <Auditoria />
             </RoleProtectedRoute>
           } 
         />

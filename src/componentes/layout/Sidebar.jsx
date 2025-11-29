@@ -13,6 +13,7 @@ import BarChartIcon from '@mui/icons-material/BarChart'
 import ViewListIcon from '@mui/icons-material/ViewList'
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
+import HistoryIcon from '@mui/icons-material/History'
 
 // Definición completa de todos los módulos del sistema
 const todosLosModulos = [
@@ -28,6 +29,7 @@ const todosLosModulos = [
     { id: 'proyectos', text: 'Proyectos', icon: <WorkIcon />, path: '/proyectos' },
     { id: 'usuarios', text: 'Usuarios', icon: <AccountCircleIcon />, path: '/usuarios' },
     { id: 'analisis', text: 'Análisis', icon: <BarChartIcon />, path: '/analisis' },
+    { id: 'auditoria', text: 'Auditoría', icon: <HistoryIcon />, path: '/auditoria' },
 ]
 
 const Sidebar = ({ drawerWidth, mobileOpen, handleDrawerToggle }) => {
