@@ -159,15 +159,22 @@ const BitacoraAuditoria = () => {
                 </Box>
 
                 {mostrarFiltros && (
-                    <Box sx={{ mb: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                    <Box sx={{ mb: 3, p: 2, bgcolor: '#0d47a1', borderRadius: 1 }}>
                         <Grid container spacing={2}>
                             <Grid item xs={12} sm={6} md={3}>
                                 <FormControl fullWidth size="small">
-                                    <InputLabel>Acción</InputLabel>
+                                    <InputLabel sx={{ color: 'white', '&.Mui-focused': { color: 'white' } }}>Acción</InputLabel>
                                     <Select
                                         value={filtros.accion}
                                         label="Acción"
                                         onChange={(e) => handleFiltroChange('accion', e.target.value)}
+                                        sx={{ 
+                                            bgcolor: 'white',
+                                            borderRadius: 1,
+                                            '& .MuiOutlinedInput-notchedOutline': { borderColor: 'transparent' },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' }
+                                        }}
                                     >
                                         <MenuItem value="">Todas</MenuItem>
                                         <MenuItem value="LOGIN">LOGIN</MenuItem>
@@ -181,11 +188,18 @@ const BitacoraAuditoria = () => {
                             </Grid>
                             <Grid item xs={12} sm={6} md={3}>
                                 <FormControl fullWidth size="small">
-                                    <InputLabel>Resultado</InputLabel>
+                                    <InputLabel sx={{ color: 'white', '&.Mui-focused': { color: 'white' } }}>Resultado</InputLabel>
                                     <Select
                                         value={filtros.resultado}
                                         label="Resultado"
                                         onChange={(e) => handleFiltroChange('resultado', e.target.value)}
+                                        sx={{ 
+                                            bgcolor: 'white',
+                                            borderRadius: 1,
+                                            '& .MuiOutlinedInput-notchedOutline': { borderColor: 'transparent' },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' }
+                                        }}
                                     >
                                         <MenuItem value="">Todos</MenuItem>
                                         <MenuItem value="EXITOSO">Exitoso</MenuItem>
@@ -201,7 +215,26 @@ const BitacoraAuditoria = () => {
                                     label="Fecha Inicio"
                                     value={filtros.fechaInicio}
                                     onChange={(e) => handleFiltroChange('fechaInicio', e.target.value)}
-                                    InputLabelProps={{ shrink: true }}
+                                    InputLabelProps={{ 
+                                        shrink: true,
+                                        sx: { color: 'white', '&.Mui-focused': { color: 'white' } }
+                                    }}
+                                    sx={{
+                                        bgcolor: '#42a5f5',
+                                        borderRadius: 1,
+                                        '& .MuiOutlinedInput-root': {
+                                            color: 'white',
+                                            '& fieldset': { borderColor: 'transparent' },
+                                            '&:hover fieldset': { borderColor: 'white' },
+                                            '&.Mui-focused fieldset': { borderColor: 'white' }
+                                        },
+                                        '& .MuiInputBase-input': {
+                                            color: 'white'
+                                        },
+                                        '& .MuiSvgIcon-root': {
+                                            color: 'white'
+                                        }
+                                    }}
                                 />
                             </Grid>
                             <Grid item xs={12} sm={6} md={3}>
@@ -212,7 +245,26 @@ const BitacoraAuditoria = () => {
                                     label="Fecha Fin"
                                     value={filtros.fechaFin}
                                     onChange={(e) => handleFiltroChange('fechaFin', e.target.value)}
-                                    InputLabelProps={{ shrink: true }}
+                                    InputLabelProps={{ 
+                                        shrink: true,
+                                        sx: { color: 'white', '&.Mui-focused': { color: 'white' } }
+                                    }}
+                                    sx={{
+                                        bgcolor: '#42a5f5',
+                                        borderRadius: 1,
+                                        '& .MuiOutlinedInput-root': {
+                                            color: 'white',
+                                            '& fieldset': { borderColor: 'transparent' },
+                                            '&:hover fieldset': { borderColor: 'white' },
+                                            '&.Mui-focused fieldset': { borderColor: 'white' }
+                                        },
+                                        '& .MuiInputBase-input': {
+                                            color: 'white'
+                                        },
+                                        '& .MuiSvgIcon-root': {
+                                            color: 'white'
+                                        }
+                                    }}
                                 />
                             </Grid>
                             <Grid item xs={12}>
