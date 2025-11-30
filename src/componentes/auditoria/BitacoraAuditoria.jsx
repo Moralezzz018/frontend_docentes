@@ -163,17 +163,28 @@ const BitacoraAuditoria = () => {
                         <Grid container spacing={2}>
                             <Grid item xs={12} sm={6} md={3}>
                                 <FormControl fullWidth size="small">
-                                    <InputLabel sx={{ color: 'white', '&.Mui-focused': { color: 'white' } }}>Acción</InputLabel>
+                                    <InputLabel 
+                                        sx={{ 
+                                            color: 'rgba(255, 255, 255, 0.9)',
+                                            '&.Mui-focused': { color: 'white' },
+                                            '&.MuiInputLabel-shrink': { color: 'rgba(255, 255, 255, 0.9)' }
+                                        }}
+                                    >
+                                        Acción
+                                    </InputLabel>
                                     <Select
                                         value={filtros.accion}
                                         label="Acción"
                                         onChange={(e) => handleFiltroChange('accion', e.target.value)}
                                         sx={{ 
-                                            bgcolor: 'white',
+                                            bgcolor: '#42a5f5',
                                             borderRadius: 1,
-                                            '& .MuiOutlinedInput-notchedOutline': { borderColor: 'transparent' },
+                                            color: 'white',
+                                            '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.3)' },
                                             '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
-                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' }
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
+                                            '& .MuiSelect-icon': { color: 'white' },
+                                            '& .MuiSelect-select': { color: 'white' }
                                         }}
                                     >
                                         <MenuItem value="">Todas</MenuItem>
@@ -188,17 +199,28 @@ const BitacoraAuditoria = () => {
                             </Grid>
                             <Grid item xs={12} sm={6} md={3}>
                                 <FormControl fullWidth size="small">
-                                    <InputLabel sx={{ color: 'white', '&.Mui-focused': { color: 'white' } }}>Resultado</InputLabel>
+                                    <InputLabel 
+                                        sx={{ 
+                                            color: 'rgba(255, 255, 255, 0.9)',
+                                            '&.Mui-focused': { color: 'white' },
+                                            '&.MuiInputLabel-shrink': { color: 'rgba(255, 255, 255, 0.9)' }
+                                        }}
+                                    >
+                                        Resultado
+                                    </InputLabel>
                                     <Select
                                         value={filtros.resultado}
                                         label="Resultado"
                                         onChange={(e) => handleFiltroChange('resultado', e.target.value)}
                                         sx={{ 
-                                            bgcolor: 'white',
+                                            bgcolor: '#42a5f5',
                                             borderRadius: 1,
-                                            '& .MuiOutlinedInput-notchedOutline': { borderColor: 'transparent' },
+                                            color: 'white',
+                                            '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.3)' },
                                             '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
-                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' }
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
+                                            '& .MuiSelect-icon': { color: 'white' },
+                                            '& .MuiSelect-select': { color: 'white' }
                                         }}
                                     >
                                         <MenuItem value="">Todos</MenuItem>
@@ -217,19 +239,26 @@ const BitacoraAuditoria = () => {
                                     onChange={(e) => handleFiltroChange('fechaInicio', e.target.value)}
                                     InputLabelProps={{ 
                                         shrink: true,
-                                        sx: { color: 'white', '&.Mui-focused': { color: 'white' } }
+                                        sx: { 
+                                            color: 'rgba(255, 255, 255, 0.9)',
+                                            '&.Mui-focused': { color: 'white' }
+                                        }
                                     }}
                                     sx={{
                                         bgcolor: '#42a5f5',
                                         borderRadius: 1,
                                         '& .MuiOutlinedInput-root': {
                                             color: 'white',
-                                            '& fieldset': { borderColor: 'transparent' },
+                                            '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.3)' },
                                             '&:hover fieldset': { borderColor: 'white' },
                                             '&.Mui-focused fieldset': { borderColor: 'white' }
                                         },
                                         '& .MuiInputBase-input': {
-                                            color: 'white'
+                                            color: 'white',
+                                            '&::placeholder': {
+                                                color: 'rgba(255, 255, 255, 0.7)',
+                                                opacity: 1
+                                            }
                                         },
                                         '& .MuiSvgIcon-root': {
                                             color: 'white'
@@ -247,19 +276,26 @@ const BitacoraAuditoria = () => {
                                     onChange={(e) => handleFiltroChange('fechaFin', e.target.value)}
                                     InputLabelProps={{ 
                                         shrink: true,
-                                        sx: { color: 'white', '&.Mui-focused': { color: 'white' } }
+                                        sx: { 
+                                            color: 'rgba(255, 255, 255, 0.9)',
+                                            '&.Mui-focused': { color: 'white' }
+                                        }
                                     }}
                                     sx={{
                                         bgcolor: '#42a5f5',
                                         borderRadius: 1,
                                         '& .MuiOutlinedInput-root': {
                                             color: 'white',
-                                            '& fieldset': { borderColor: 'transparent' },
+                                            '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.3)' },
                                             '&:hover fieldset': { borderColor: 'white' },
                                             '&.Mui-focused fieldset': { borderColor: 'white' }
                                         },
                                         '& .MuiInputBase-input': {
-                                            color: 'white'
+                                            color: 'white',
+                                            '&::placeholder': {
+                                                color: 'rgba(255, 255, 255, 0.7)',
+                                                opacity: 1
+                                            }
                                         },
                                         '& .MuiSvgIcon-root': {
                                             color: 'white'
