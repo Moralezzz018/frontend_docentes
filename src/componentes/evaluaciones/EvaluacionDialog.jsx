@@ -10,11 +10,12 @@ import {
     Grid,
     Box,
 } from '@mui/material'
+import { seccionesService } from '@servicios/catalogosService'
 
 const TIPOS_EVALUACION = ['NORMAL', 'REPOSICION', 'EXAMEN']
 const ESTADOS = ['ACTIVO', 'INACTIVO']
 
-const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales = [], periodos = [], clases = [], secciones = [] }) => {
+const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales = [], periodos = [], clases = [] }) => {
     const [formData, setFormData] = useState({
         titulo: '',
         fechaInicio: '',
@@ -30,6 +31,8 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
     })
 
     const [errors, setErrors] = useState({})
+    const [seccionesFiltradas, setSeccionesFiltradas] = useState([])
+    const [loadingSecciones, setLoadingSecciones] = useState(false)
 
     // Actualizar formData cuando cambie evaluacion o se abra el diálogo
     useEffect(() => {
@@ -67,15 +70,31 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
         }
     }, [open, evaluacion])
     
+    // Cargar secciones cuando se selecciona una clase
+    useEffect(() => {
+        const cargarSecciones = async () => {
+            if (formData.claseId) {
+                setLoadingSecciones(true)
+                try {
+                    const secciones = await seccionesService.listar({ claseId: formData.claseId })
+                    setSeccionesFiltradas(Array.isArray(secciones) ? secciones : [])
+                } catch (error) {
+                    console.error('Error cargando secciones:', error)
+                    setSeccionesFiltradas([])
+                } finally {
+                    setLoadingSecciones(false)
+                }
+            } else {
+                setSeccionesFiltradas([])
+            }
+        }
+        cargarSecciones()
+    }, [formData.claseId])
+    
     // Filtrar parciales según el periodo seleccionado
     const parcialesFiltrados = formData.periodoId 
         ? parciales.filter(parcial => parcial.periodoId === parseInt(formData.periodoId))
         : parciales
-    
-    // Filtrar secciones según la clase seleccionada
-    const seccionesFiltradas = formData.claseId
-        ? secciones.filter(seccion => seccion.claseId === parseInt(formData.claseId))
-        : secciones
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -326,8 +345,14 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
                                 name="seccionId"
                                 value={formData.seccionId}
                                 onChange={handleChange}
-                                helperText={formData.claseId ? "Seleccione una sección" : "Primero seleccione una clase"}
-                                disabled={!formData.claseId}
+                                helperText={
+                                    loadingSecciones 
+                                        ? "Cargando secciones..." 
+                                        : formData.claseId 
+                                            ? `${seccionesFiltradas.length} sección(es) disponible(s)` 
+                                            : "Primero seleccione una clase"
+                                }
+                                disabled={!formData.claseId || loadingSecciones}
                             >
                                 <MenuItem value="">Ninguna</MenuItem>
                                 {Array.isArray(seccionesFiltradas) && seccionesFiltradas.map((seccion) => (

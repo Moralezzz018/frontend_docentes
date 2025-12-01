@@ -104,17 +104,50 @@ const Estudiantes = () => {
         try {
             const result = await estudiantesService.cargarExcel(file, creditos, aulaId)
             
-            const mensaje = `
-                Proceso completado:
-                - Estudiantes nuevos: ${result.resumen.estudiantesNuevos}
-                - Inscripciones creadas: ${result.resumen.inscripcionesCreadas}
-                - Errores: ${result.resumen.errores}
-            `
+            console.log('📊 Resultado completo de carga Excel:', result)
+            
+            // Construir mensaje detallado
+            let mensaje = `Proceso completado:\n- Estudiantes nuevos: ${result.resumen.estudiantesNuevos}\n- Inscripciones creadas: ${result.resumen.inscripcionesCreadas}`
+            
+            // Agregar información de errores si existen
+            if (result.resumen.errores > 0) {
+                mensaje += `\n- Errores: ${result.resumen.errores}`
+                
+                // Mostrar detalles de errores de validación
+                if (result.erroresValidacion && result.erroresValidacion.length > 0) {
+                    console.error('❌ Errores de validación:', result.erroresValidacion)
+                    mensaje += `\n\nErrores de validación:`
+                    result.erroresValidacion.slice(0, 3).forEach(err => {
+                        mensaje += `\n- Fila ${err.fila}: ${err.error}`
+                    })
+                    if (result.erroresValidacion.length > 3) {
+                        mensaje += `\n- ...y ${result.erroresValidacion.length - 3} más`
+                    }
+                }
+                
+                // Mostrar detalles de errores de guardado
+                if (result.erroresGuardado && result.erroresGuardado.length > 0) {
+                    console.error('❌ Errores de guardado:', result.erroresGuardado)
+                    mensaje += `\n\nErrores de guardado:`
+                    result.erroresGuardado.slice(0, 3).forEach(err => {
+                        mensaje += `\n- ${err.correo}: ${err.error}`
+                    })
+                    if (result.erroresGuardado.length > 3) {
+                        mensaje += `\n- ...y ${result.erroresGuardado.length - 3} más`
+                    }
+                }
+            }
+            
+            // Mostrar información de debug si está disponible
+            if (result.debug) {
+                console.log('🔍 Debug info:', result.debug)
+            }
             
             mostrarSnackbar(mensaje, result.resumen.errores > 0 ? 'warning' : 'success')
             cargarDatos()
         } catch (error) {
             console.error('Error al cargar Excel:', error)
+            console.error('Detalles del error:', error.response?.data)
             throw error
         }
     }
@@ -237,7 +270,7 @@ const Estudiantes = () => {
 
             <Snackbar
                 open={snackbar.open}
-                autoHideDuration={6000}
+                autoHideDuration={snackbar.severity === 'warning' ? 10000 : 6000}
                 onClose={() => setSnackbar({ ...snackbar, open: false })}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
@@ -245,7 +278,13 @@ const Estudiantes = () => {
                     onClose={() => setSnackbar({ ...snackbar, open: false })} 
                     severity={snackbar.severity}
                     variant="filled"
-                    sx={{ whiteSpace: 'pre-line' }}
+                    sx={{ 
+                        whiteSpace: 'pre-line',
+                        maxWidth: '600px',
+                        '& .MuiAlert-message': {
+                            fontSize: '0.875rem'
+                        }
+                    }}
                 >
                     {snackbar.message}
                 </Alert>
