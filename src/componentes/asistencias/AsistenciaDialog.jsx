@@ -9,10 +9,14 @@ import {
     MenuItem,
     Grid,
     FormHelperText,
+    Box,
+    Typography,
+    Alert,
 } from '@mui/material'
+import { CloudUpload as CloudUploadIcon, Image as ImageIcon } from '@mui/icons-material'
 import { useAuthStore } from '@almacen/authStore'
 
-const ESTADOS = ['PRESENTE', 'AUSENTE', 'TARDANZA']
+const ESTADOS = ['PRESENTE', 'AUSENTE', 'TARDANZA', 'EXCUSA']
 
 const AsistenciaDialog = ({ 
     open, 
@@ -38,6 +42,8 @@ const AsistenciaDialog = ({
     })
 
     const [errors, setErrors] = useState({})
+    const [imagenExcusa, setImagenExcusa] = useState(null)
+    const [imagenExcusaPreview, setImagenExcusaPreview] = useState(null)
     
     // Actualizar formData cuando cambie asistencia o se abra el diálogo
     useEffect(() => {
@@ -52,6 +58,15 @@ const AsistenciaDialog = ({
                     estado: asistencia.estado || 'PRESENTE',
                     descripcion: asistencia.descripcion || '',
                 })
+                // Si tiene imágenes de excusa, mostrar la primera
+                if (asistencia.imagenes && asistencia.imagenes.length > 0) {
+                    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+                    const primeraImagen = asistencia.imagenes[0]
+                    setImagenExcusaPreview(`${baseUrl}/img/asistencias/excusas/${primeraImagen.imagen}`)
+                } else {
+                    setImagenExcusa(null)
+                    setImagenExcusaPreview(null)
+                }
             } else {
                 // Si es nuevo registro
                 setFormData({
@@ -63,6 +78,8 @@ const AsistenciaDialog = ({
                     estado: 'PRESENTE',
                     descripcion: '',
                 })
+                setImagenExcusa(null)
+                setImagenExcusaPreview(null)
             }
             setErrors({})
         }
@@ -107,6 +124,12 @@ const AsistenciaDialog = ({
         if (name === 'claseId') {
             updates.estudianteId = ''
         }
+
+        // Si cambia el estado y NO es EXCUSA, limpiar imagen
+        if (name === 'estado' && value !== 'EXCUSA') {
+            setImagenExcusa(null)
+            setImagenExcusaPreview(null)
+        }
         
         setFormData(prev => ({
             ...prev,
@@ -116,6 +139,35 @@ const AsistenciaDialog = ({
         // Limpiar error del campo
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: '' }))
+        }
+    }
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0]
+        if (file) {
+            // Validar tipo de archivo
+            if (!file.type.startsWith('image/')) {
+                setErrors(prev => ({ ...prev, imagenExcusa: 'Solo se permiten archivos de imagen' }))
+                return
+            }
+            
+            // Validar tamaño (5MB máximo)
+            if (file.size > 5 * 1024 * 1024) {
+                setErrors(prev => ({ ...prev, imagenExcusa: 'La imagen no debe superar los 5MB' }))
+                return
+            }
+
+            setImagenExcusa(file)
+            
+            // Crear preview
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setImagenExcusaPreview(reader.result)
+            }
+            reader.readAsDataURL(file)
+            
+            // Limpiar error
+            setErrors(prev => ({ ...prev, imagenExcusa: '' }))
         }
     }
 
@@ -152,6 +204,11 @@ const AsistenciaDialog = ({
             newErrors.estado = 'Seleccione un estado'
         }
 
+        // Si el estado es EXCUSA y es nuevo registro, validar que haya imagen
+        if (formData.estado === 'EXCUSA' && !imagenExcusa && !asistencia) {
+            newErrors.imagenExcusa = 'Debe subir una imagen de excusa'
+        }
+
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
     }
@@ -167,6 +224,12 @@ const AsistenciaDialog = ({
                 estado: formData.estado,
                 descripcion: formData.descripcion || null,
             }
+            
+            // Si hay imagen de excusa, agregarla
+            if (imagenExcusa) {
+                data.imagenExcusa = imagenExcusa
+            }
+            
             onSave(data)
         }
     }
@@ -322,6 +385,69 @@ const AsistenciaDialog = ({
                             rows={2}
                         />
                     </Grid>
+
+                    {/* Campo de imagen de excusa - solo visible cuando estado es EXCUSA */}
+                    {formData.estado === 'EXCUSA' && (
+                        <Grid item xs={12}>
+                            <Box sx={{ mt: 1 }}>
+                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                                    Imagen de Excusa {!asistencia && <span style={{ color: 'red' }}>*</span>}
+                                </Typography>
+                                
+                                <Button
+                                    variant="outlined"
+                                    component="label"
+                                    startIcon={<CloudUploadIcon />}
+                                    fullWidth
+                                    sx={{ mb: 2 }}
+                                >
+                                    {imagenExcusa ? 'Cambiar Imagen' : 'Subir Imagen de Excusa'}
+                                    <input
+                                        type="file"
+                                        hidden
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                    />
+                                </Button>
+
+                                {errors.imagenExcusa && (
+                                    <Alert severity="error" sx={{ mb: 2 }}>
+                                        {errors.imagenExcusa}
+                                    </Alert>
+                                )}
+
+                                {imagenExcusaPreview && (
+                                    <Box sx={{ 
+                                        border: '2px solid #e0e0e0', 
+                                        borderRadius: 2, 
+                                        p: 2,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center'
+                                    }}>
+                                        <ImageIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                            Vista previa de la imagen
+                                        </Typography>
+                                        <img 
+                                            src={imagenExcusaPreview} 
+                                            alt="Preview excusa" 
+                                            style={{ 
+                                                maxWidth: '100%', 
+                                                maxHeight: '300px',
+                                                borderRadius: '8px',
+                                                objectFit: 'contain'
+                                            }} 
+                                        />
+                                    </Box>
+                                )}
+
+                                <FormHelperText>
+                                    Formatos permitidos: JPG, PNG, JPEG. Tamaño máximo: 5MB
+                                </FormHelperText>
+                            </Box>
+                        </Grid>
+                    )}
                 </Grid>
             </DialogContent>
             <DialogActions>

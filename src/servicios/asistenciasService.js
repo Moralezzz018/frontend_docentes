@@ -10,6 +10,28 @@ export const asistenciasService = {
 
     // Guardar una asistencia individual
     guardar: async (data) => {
+        // Si hay imagen de excusa, enviar como FormData
+        if (data.imagenExcusa && data.imagenExcusa instanceof File) {
+            const formData = new FormData()
+            
+            // Agregar todos los campos del formulario
+            Object.keys(data).forEach(key => {
+                if (key === 'imagenExcusa') {
+                    formData.append('imagenExcusa', data[key])
+                } else if (data[key] !== null && data[key] !== undefined) {
+                    formData.append(key, data[key])
+                }
+            })
+            
+            const response = await apiClient.post(API_ENDPOINTS.ASISTENCIAS.GUARDAR, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+            return response.data
+        }
+        
+        // Si no hay imagen, enviar JSON normal
         const response = await apiClient.post(API_ENDPOINTS.ASISTENCIAS.GUARDAR, data)
         return response.data
     },
@@ -22,6 +44,28 @@ export const asistenciasService = {
 
     // Editar una asistencia
     editar: async (id, data) => {
+        // Si hay imagen de excusa, enviar como FormData
+        if (data.imagenExcusa && data.imagenExcusa instanceof File) {
+            const formData = new FormData()
+            
+            // Agregar todos los campos del formulario
+            Object.keys(data).forEach(key => {
+                if (key === 'imagenExcusa') {
+                    formData.append('imagenExcusa', data[key])
+                } else if (data[key] !== null && data[key] !== undefined) {
+                    formData.append(key, data[key])
+                }
+            })
+            
+            const response = await apiClient.put(`${API_ENDPOINTS.ASISTENCIAS.EDITAR}?id=${id}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+            return response.data
+        }
+        
+        // Si no hay imagen, enviar JSON normal
         const response = await apiClient.put(`${API_ENDPOINTS.ASISTENCIAS.EDITAR}?id=${id}`, data)
         return response.data
     },
