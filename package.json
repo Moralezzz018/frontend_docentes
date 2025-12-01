@@ -14,10 +14,13 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.10",
     "@mui/material": "^5.15.10",
+    "@react-email/components": "^1.0.1",
+    "@react-email/render": "^2.0.0",
     "axios": "^1.6.7",
     "date-fns": "^3.6.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-email": "^5.0.5",
     "react-router-dom": "^6.22.0",
     "recharts": "^3.5.1",
     "zustand": "^4.5.7"

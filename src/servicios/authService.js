@@ -1,5 +1,6 @@
 import apiClient from './apiClient'
 import { API_ENDPOINTS } from '@configuracion/api'
+import { generarCorreoRecuperacion } from './correoService'
 
 export const authService = {
   // Login
@@ -37,7 +38,22 @@ export const authService = {
 
   // Solicitar restablecimiento de contraseña
   solicitarRestablecimiento: async (correo) => {
+    // Primero generar el PIN en el backend
     const response = await apiClient.post(API_ENDPOINTS.AUTH.SOLICITAR_RESTABLECIMIENTO, { correo })
+    
+    // Obtener el PIN generado y el nombre del usuario
+    const { pin, nombreUsuario } = response.data
+    
+    // Renderizar la plantilla de correo en el frontend
+    const htmlContent = await generarCorreoRecuperacion(pin, nombreUsuario)
+    
+    // Enviar el correo con el HTML renderizado
+    await apiClient.post(API_ENDPOINTS.CORREO.ENVIAR, {
+      destinatario: correo,
+      asunto: 'Verificación de identidad - Código de recuperación',
+      contenido: htmlContent,
+    })
+    
     return response.data
   },
 

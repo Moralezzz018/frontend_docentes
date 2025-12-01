@@ -119,6 +119,11 @@ export const API_ENDPOINTS = {
         LIMPIAR: `${API_BASE_URL}/api/notificaciones/limpiar`,
     },
 
+    // Correo
+    CORREO: {
+        ENVIAR: `${API_BASE_URL}/api/correo/enviar`,
+    },
+
     // Grupos (Rifas)
     GRUPOS: {
         VALIDAR_CANTIDAD: `${API_BASE_URL}/api/grupos/validar-cantidad`,
@@ -143,6 +148,7 @@ export const {
     AULAS, 
     USUARIOS,
     NOTIFICACIONES,
+    CORREO,
     GRUPOS
 } = API_ENDPOINTS
 
