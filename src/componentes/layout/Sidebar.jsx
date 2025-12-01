@@ -9,6 +9,7 @@ import ClassIcon from '@mui/icons-material/Class'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import WorkIcon from '@mui/icons-material/Work'
+import CasinoIcon from '@mui/icons-material/Casino'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import ViewListIcon from '@mui/icons-material/ViewList'
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom'
@@ -28,6 +29,7 @@ const todosLosModulos = [
     { id: 'aulas', text: 'Aulas', icon: <MeetingRoomIcon />, path: '/aulas' },
     { id: 'asistencias', text: 'Asistencias', icon: <CheckCircleIcon />, path: '/asistencias' },
     { id: 'proyectos', text: 'Proyectos', icon: <WorkIcon />, path: '/proyectos' },
+    { id: 'rifas', text: 'Rifas', icon: <CasinoIcon />, path: '/rifas' },
     { id: 'usuarios', text: 'Usuarios', icon: <AccountCircleIcon />, path: '/usuarios' },
     { id: 'analisis', text: 'Análisis', icon: <BarChartIcon />, path: '/analisis' },
     { id: 'auditoria', text: 'Auditoría', icon: <HistoryIcon />, path: '/auditoria' },

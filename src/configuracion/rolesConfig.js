@@ -29,6 +29,7 @@ export const MODULOS_POR_ROL = {
         'aulas',
         'asistencias',
         'proyectos',
+        'rifas',
         'usuarios',
         'analisis',
         'auditoria',
@@ -45,6 +46,7 @@ export const MODULOS_POR_ROL = {
         'aulas',
         'asistencias',
         'proyectos',
+        'rifas',
         'analisis',
         'notificaciones'
         // NO incluye 'usuarios' ni 'auditoria'

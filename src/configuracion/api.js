@@ -33,6 +33,7 @@ export const API_ENDPOINTS = {
         FILTRAR_NOMBRE_ESTADO: `${API_BASE_URL}/api/estudiantes/filtrar-nombre-estado`,
         FILTRAR_CORREO: `${API_BASE_URL}/api/estudiantes/filtrar-correo`,
         FILTRAR_ESTADISTICAS: `${API_BASE_URL}/api/estudiantes/filtrar-estadisticas`,
+        POR_CLASE: `${API_BASE_URL}/api/estudiantes/por-clase`,
     },
 
     // Clases
@@ -117,6 +118,15 @@ export const API_ENDPOINTS = {
         COLA: `${API_BASE_URL}/api/notificaciones/cola`,
         LIMPIAR: `${API_BASE_URL}/api/notificaciones/limpiar`,
     },
+
+    // Grupos (Rifas)
+    GRUPOS: {
+        VALIDAR_CANTIDAD: `${API_BASE_URL}/api/grupos/validar-cantidad`,
+        RIFAR_PROYECTOS: `${API_BASE_URL}/api/grupos/rifar-proyectos`,
+        ASIGNAR_ESTUDIANTES: `${API_BASE_URL}/api/grupos/asignar-estudiantes`,
+        LISTAR: `${API_BASE_URL}/api/grupos/listar`,
+        ELIMINAR_CLASE: `${API_BASE_URL}/api/grupos/eliminar-clase`,
+    },
 }
 
 // Exportar endpoints individuales para compatibilidad
@@ -132,7 +142,8 @@ export const {
     PROYECTOS, 
     AULAS, 
     USUARIOS,
-    NOTIFICACIONES
+    NOTIFICACIONES,
+    GRUPOS
 } = API_ENDPOINTS
 
 export default API_BASE_URL

@@ -55,5 +55,10 @@ export const estudiantesService = {
 
         const response = await apiClient.get(`${ESTUDIANTES.FILTRAR_ESTADISTICAS}?${params.toString()}`)
         return response.data
+    },
+
+    obtenerPorClase: async (claseId) => {
+        const response = await apiClient.get(`${ESTUDIANTES.POR_CLASE}?claseId=${claseId}`)
+        return response.data
     }
 }

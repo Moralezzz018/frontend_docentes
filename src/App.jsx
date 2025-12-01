@@ -18,6 +18,7 @@ import Aulas from '@paginas/Aulas/Aulas'
 import Usuarios from '@paginas/Usuarios/Usuarios'
 import Perfil from '@paginas/Perfil/Perfil'
 import Proyectos from '@paginas/Proyectos/Proyectos'
+import Rifas from '@paginas/Rifas/Rifas'
 import Analisis from '@paginas/Analisis/Analisis'
 import { Auditoria } from '@paginas/Auditoria'
 import Notificaciones from '@paginas/Notificaciones/Notificaciones'
@@ -130,6 +131,16 @@ function App() {
           element={
             <RoleProtectedRoute moduloRequerido="proyectos">
               <Proyectos />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Rifas: ADMIN, DOCENTE */}
+        <Route 
+          path="rifas" 
+          element={
+            <RoleProtectedRoute moduloRequerido="proyectos">
+              <Rifas />
             </RoleProtectedRoute>
           } 
         />
