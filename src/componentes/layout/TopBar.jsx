@@ -5,6 +5,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import SchoolIcon from '@mui/icons-material/School'
 import PersonIcon from '@mui/icons-material/Person'
+import Logo from '@componentes/common/Logo'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@almacen/authStore'
@@ -86,9 +87,12 @@ const TopBar = ({ drawerWidth, handleDrawerToggle }) => {
                 >
                     <MenuIcon />
                 </IconButton>
-                <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-                    Sistema de Gestión Docente
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexGrow: 1 }}>
+                    <Logo size={36} color="#90caf9" />
+                    <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 600 }}>
+                        Sistema de Gestión Docente
+                    </Typography>
+                </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <IconButton onClick={toggleMode} color="inherit" title={mode === 'dark' ? 'Modo claro' : 'Modo oscuro'}>
                         {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}

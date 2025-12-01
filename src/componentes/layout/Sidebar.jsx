@@ -2,6 +2,7 @@ import { Drawer, Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@almacen/authStore'
 import { tieneAccesoAModulo } from '@configuracion/rolesConfig'
+import Logo from '@componentes/common/Logo'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import PeopleIcon from '@mui/icons-material/People'
@@ -52,15 +53,18 @@ const Sidebar = ({ drawerWidth, mobileOpen, handleDrawerToggle }) => {
     const drawer = (
         <Box>
             <Toolbar>
-                <Box sx={{ width: '100%' }}>
-                    <Typography variant="h6" noWrap component="div">
-                        Docentes App
-                    </Typography>
-                    {user?.rol?.nombre && (
-                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
-                            {user.rol.nombre}
+                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Logo size={40} />
+                    <Box sx={{ flexGrow: 1 }}>
+                        <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 600 }}>
+                            Docentes App
                         </Typography>
-                    )}
+                        {user?.rol?.nombre && (
+                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                                {user.rol.nombre}
+                            </Typography>
+                        )}
+                    </Box>
                 </Box>
             </Toolbar>
             <Divider />

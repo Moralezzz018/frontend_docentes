@@ -21,14 +21,21 @@ export const RecuperacionPasswordEmail = ({ pin = '123456', nombreUsuario = 'Usu
         <Container style={container}>
           {/* Logo y marca */}
           <Section style={header}>
-            <div style={logoContainer}>
-              <div style={logoCircle}>
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                  <rect width="32" height="32" rx="4" fill="white" />
-                  <path d="M8 8h4v4H8V8zm6 0h4v4h-4V8zm6 0h4v4h-4V8zM8 14h4v4H8v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM8 20h4v4H8v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z" fill="#1a73e8" />
-                </svg>
-              </div>
-            </div>
+            <table cellPadding="0" cellSpacing="0" border="0" width="100%" style={{ marginBottom: '20px' }}>
+              <tr>
+                <td align="center">
+                  <table cellPadding="0" cellSpacing="0" border="0">
+                    <tr>
+                      <td style={logoCircle}>
+                        <div style={{ padding: '16px' }}>
+                          <div style={{ fontSize: '48px', lineHeight: '1', color: '#1a73e8' }}>🎓</div>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
           </Section>
 
           {/* Decoración superior */}
@@ -69,9 +76,20 @@ export const RecuperacionPasswordEmail = ({ pin = '123456', nombreUsuario = 'Usu
 
           {/* Footer */}
           <Section style={footer}>
-            <Text style={footerText}>
-              PROTEGIDO DE FORMA SEGURA POR SISTEMA EDUCATIVO.
-            </Text>
+            <table cellPadding="0" cellSpacing="0" border="0" width="100%">
+              <tr>
+                <td align="center" style={{ paddingBottom: '8px' }}>
+                  <div style={{ fontSize: '32px', lineHeight: '1' }}>🎓</div>
+                </td>
+              </tr>
+              <tr>
+                <td align="center">
+                  <Text style={footerText}>
+                    PROTEGIDO DE FORMA SEGURA POR SISTEMA DE GESTIÓN DOCENTE.
+                  </Text>
+                </td>
+              </tr>
+            </table>
           </Section>
         </Container>
       </Body>
@@ -105,15 +123,14 @@ const logoContainer = {
 };
 
 const logoCircle = {
-  width: '64px',
-  height: '64px',
+  width: '96px',
+  height: '96px',
   borderRadius: '50%',
-  backgroundColor: '#f8f9fa',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  margin: '0 auto',
-  border: '1px solid #e9ecef',
+  backgroundColor: '#e3f2fd',
+  border: '5px solid #1976d2',
+  boxShadow: '0 6px 20px rgba(25, 118, 210, 0.3)',
+  display: 'inline-block',
+  textAlign: 'center',
 };
 
 const dotsContainer = {

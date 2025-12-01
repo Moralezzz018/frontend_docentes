@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Box, Container, TextField, Button, Typography, Paper } from '@mui/material';
 import { render } from '@react-email/render';
-import RecuperacionPasswordEmail from './RecuperacionPassword';
+import RecuperacionPasswordEmail from '@plantillas/RecuperacionPassword';
+import Logo from '@componentes/common/Logo';
 
 /**
  * Componente para previsualizar plantillas de correo en desarrollo
@@ -31,9 +32,12 @@ const EmailPreview = () => {
 
     return (
         <Container maxWidth="lg" sx={{ py: 4 }}>
-            <Typography variant="h4" gutterBottom>
-                📧 Preview de Plantillas de Correo
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+                <Logo size={48} />
+                <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                    📧 Preview de Plantillas de Correo
+                </Typography>
+            </Box>
 
             <Paper sx={{ p: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom>
