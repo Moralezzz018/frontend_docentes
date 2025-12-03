@@ -22,6 +22,7 @@ import {
 import SaveIcon from '@mui/icons-material/Save';
 import PercentIcon from '@mui/icons-material/Percent';
 import { estructuraCalificacionService } from '@servicios/estructuraCalificacionService';
+import { periodosService, parcialesService, clasesService } from '@servicios/catalogosService';
 
 /**
  * Dialog para configurar la estructura de calificación por parcial y clase
@@ -30,8 +31,8 @@ import { estructuraCalificacionService } from '@servicios/estructuraCalificacion
 const ConfiguracionEstructuraDialog = ({ 
     open, 
     onClose, 
-    parcialId, 
-    claseId, 
+    parcialId: parcialIdProp, 
+    claseId: claseIdProp, 
     docenteId,
     estructuraExistente = null,
     onGuardado 
@@ -41,7 +42,7 @@ const ConfiguracionEstructuraDialog = ({
         pesoExamen: 40,
         pesoReposicion: 0,
         notaMaximaParcial: 100,
-        notaMinimaAprobacion: 60,
+        notaMinimaAprobacion: 70,
         observaciones: '',
     });
     const [estructuraId, setEstructuraId] = useState(null);
@@ -49,12 +50,26 @@ const ConfiguracionEstructuraDialog = ({
     const [guardando, setGuardando] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
+    
+    // Estados para los catálogos
+    const [periodos, setPeriodos] = useState([]);
+    const [parciales, setParciales] = useState([]);
+    const [clases, setClases] = useState([]);
+    
+    // Estados para los valores seleccionados
+    const [periodoId, setPeriodoId] = useState('');
+    const [parcialId, setParcialId] = useState('');
+    const [claseId, setClaseId] = useState('');
 
     useEffect(() => {
         if (open) {
+            cargarCatalogos();
+            
             if (estructuraExistente) {
                 // Modo edición: cargar datos de la estructura existente
                 setEstructuraId(estructuraExistente.id);
+                setParcialId(estructuraExistente.parcialId || '');
+                setClaseId(estructuraExistente.claseId || '');
                 setEstructura({
                     pesoAcumulativo: parseFloat(estructuraExistente.pesoAcumulativo || 60),
                     pesoExamen: parseFloat(estructuraExistente.pesoExamen || 40),
@@ -63,15 +78,39 @@ const ConfiguracionEstructuraDialog = ({
                     notaMinimaAprobacion: parseFloat(estructuraExistente.notaMinimaAprobacion || 60),
                     observaciones: estructuraExistente.observaciones || '',
                 });
-            } else if (parcialId && claseId) {
-                // Modo creación: intentar cargar si existe estructura para ese parcial/clase
-                cargarEstructura();
             } else {
-                // Valores por defecto
+                // Modo creación: usar valores de props si existen
+                setParcialId(parcialIdProp || '');
+                setClaseId(claseIdProp || '');
                 resetEstructura();
             }
         }
-    }, [open, estructuraExistente, parcialId, claseId]);
+    }, [open, estructuraExistente, parcialIdProp, claseIdProp]);
+
+    const cargarCatalogos = async () => {
+        try {
+            setLoading(true);
+            const [periodosData, parcialesData, clasesData] = await Promise.allSettled([
+                periodosService.listar(),
+                parcialesService.listar(),
+                clasesService.listar(),
+            ]);
+
+            if (periodosData.status === 'fulfilled' && Array.isArray(periodosData.value)) {
+                setPeriodos(periodosData.value);
+            }
+            if (parcialesData.status === 'fulfilled' && Array.isArray(parcialesData.value)) {
+                setParciales(parcialesData.value);
+            }
+            if (clasesData.status === 'fulfilled' && Array.isArray(clasesData.value)) {
+                setClases(clasesData.value);
+            }
+        } catch (err) {
+            console.error('Error al cargar catálogos:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const resetEstructura = () => {
         setEstructuraId(null);
@@ -80,22 +119,26 @@ const ConfiguracionEstructuraDialog = ({
             pesoExamen: 40,
             pesoReposicion: 0,
             notaMaximaParcial: 100,
-            notaMinimaAprobacion: 60,
+            notaMinimaAprobacion: 70,
             observaciones: '',
         });
     };
+
+    // Efecto para verificar si ya existe estructura cuando cambian parcial o clase
+    useEffect(() => {
+        if (parcialId && claseId && !estructuraExistente) {
+            cargarEstructura();
+        }
+    }, [parcialId, claseId]);
 
     const cargarEstructura = async () => {
         if (!parcialId || !claseId) return;
         
         try {
-            setLoading(true);
-            setError(null);
-            
             const data = await estructuraCalificacionService.obtenerPorParcialYClase(parcialId, claseId);
             
             if (data && data.id) {
-                // Estructura existente
+                // Estructura existente encontrada
                 setEstructuraId(data.id);
                 setEstructura({
                     pesoAcumulativo: parseFloat(data.pesoAcumulativo || 60),
@@ -105,6 +148,7 @@ const ConfiguracionEstructuraDialog = ({
                     notaMinimaAprobacion: parseFloat(data.notaMinimaAprobacion || 60),
                     observaciones: data.observaciones || '',
                 });
+                setError('Ya existe una estructura para este Parcial y Clase. Los datos se han cargado para editar.');
             } else {
                 // Sin estructura, usar valores por defecto
                 resetEstructura();
@@ -113,8 +157,6 @@ const ConfiguracionEstructuraDialog = ({
             console.error('Error al cargar estructura:', err);
             // No es error crítico si no existe, usar valores por defecto
             resetEstructura();
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -147,6 +189,11 @@ const ConfiguracionEstructuraDialog = ({
     const handleGuardar = async () => {
         if (!esValido()) {
             setError('La suma de los porcentajes debe ser 100%');
+            return;
+        }
+
+        if (!parcialId || !claseId) {
+            setError('Debe seleccionar un Parcial y una Clase');
             return;
         }
 
@@ -222,6 +269,95 @@ const ConfiguracionEstructuraDialog = ({
                                 {success}
                             </Alert>
                         )}
+
+                        {/* Selectores de Período, Parcial y Clase */}
+                        <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
+                            <Typography variant="subtitle2" gutterBottom fontWeight="bold">
+                                📋 Seleccione el Período, Parcial y Clase
+                            </Typography>
+                            <Grid container spacing={2} sx={{ mt: 1 }}>
+                                <Grid item xs={12} md={4}>
+                                    <FormControl fullWidth size="small" disabled={!!estructuraExistente}>
+                                        <InputLabel>Período</InputLabel>
+                                        <Select
+                                            value={periodoId}
+                                            onChange={(e) => {
+                                                setPeriodoId(e.target.value);
+                                                setParcialId(''); // Reset parcial cuando cambia período
+                                            }}
+                                            label="Período"
+                                            sx={{ 
+                                                bgcolor: 'white',
+                                                '& .MuiSelect-select': { py: 1 }
+                                            }}
+                                        >
+                                            <MenuItem value="">
+                                                <em>Seleccione un período</em>
+                                            </MenuItem>
+                                            {periodos.map((periodo) => (
+                                                <MenuItem key={periodo.id} value={periodo.id}>
+                                                    {periodo.nombre}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item xs={12} md={4}>
+                                    <FormControl fullWidth size="small" disabled={!!estructuraExistente || !periodoId}>
+                                        <InputLabel>Parcial</InputLabel>
+                                        <Select
+                                            value={parcialId}
+                                            onChange={(e) => setParcialId(e.target.value)}
+                                            label="Parcial"
+                                            sx={{ 
+                                                bgcolor: 'white',
+                                                '& .MuiSelect-select': { py: 1 }
+                                            }}
+                                        >
+                                            <MenuItem value="">
+                                                <em>Seleccione un parcial</em>
+                                            </MenuItem>
+                                            {parciales
+                                                .filter(p => p.periodoId === periodoId)
+                                                .map((parcial) => (
+                                                    <MenuItem key={parcial.id} value={parcial.id}>
+                                                        {parcial.nombre}
+                                                    </MenuItem>
+                                                ))
+                                            }
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item xs={12} md={4}>
+                                    <FormControl fullWidth size="small" disabled={!!estructuraExistente}>
+                                        <InputLabel>Clase</InputLabel>
+                                        <Select
+                                            value={claseId}
+                                            onChange={(e) => setClaseId(e.target.value)}
+                                            label="Clase"
+                                            sx={{ 
+                                                bgcolor: 'white',
+                                                '& .MuiSelect-select': { py: 1 }
+                                            }}
+                                        >
+                                            <MenuItem value="">
+                                                <em>Seleccione una clase</em>
+                                            </MenuItem>
+                                            {clases.map((clase) => (
+                                                <MenuItem key={clase.id} value={clase.id}>
+                                                    {clase.codigo} - {clase.nombre}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                            </Grid>
+                            {estructuraExistente && (
+                                <Alert severity="info" sx={{ mt: 2 }}>
+                                    Modo edición: No puede cambiar el Período, Parcial o Clase de una estructura existente.
+                                </Alert>
+                            )}
+                        </Paper>
 
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                             Defina la distribución de pesos para las calificaciones. La suma debe ser 100%.
@@ -352,29 +488,45 @@ const ConfiguracionEstructuraDialog = ({
                         </Paper>
 
                         {/* Configuraciones adicionales */}
+                        <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: 'info.light' }}>
+                            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                                ⚙️ Configuración de Notas
+                            </Typography>
+                            <Grid container spacing={2}>
+                                <Grid item xs={12} md={6}>
+                                    <TextField
+                                        fullWidth
+                                        label="Nota Máxima del Parcial"
+                                        type="number"
+                                        value={estructura.notaMaximaParcial}
+                                        onChange={handleTextFieldChange('notaMaximaParcial')}
+                                        inputProps={{ min: 0, max: 100, step: 0.01 }}
+                                        helperText="Normalmente 100 puntos"
+                                        sx={{ bgcolor: 'white' }}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <TextField
+                                        fullWidth
+                                        label="Nota Mínima de Aprobación"
+                                        type="number"
+                                        value={estructura.notaMinimaAprobacion}
+                                        onChange={handleTextFieldChange('notaMinimaAprobacion')}
+                                        inputProps={{ min: 0, max: 100, step: 0.01 }}
+                                        helperText="Con cuánto se pasa la clase"
+                                        sx={{ bgcolor: 'white' }}
+                                    />
+                                </Grid>
+                            </Grid>
+                            <Alert severity="info" sx={{ mt: 2 }}>
+                                <Typography variant="body2">
+                                    <strong>Nota de Aprobación:</strong> Define el puntaje mínimo que un estudiante debe alcanzar para aprobar el parcial. 
+                                    Por ejemplo: Si configuras 70, el estudiante debe obtener al menos 70 puntos de {estructura.notaMaximaParcial} para aprobar.
+                                </Typography>
+                            </Alert>
+                        </Paper>
+
                         <Grid container spacing={2}>
-                            <Grid item xs={6}>
-                                <TextField
-                                    fullWidth
-                                    label="Nota Máxima del Parcial"
-                                    type="number"
-                                    value={estructura.notaMaximaParcial}
-                                    onChange={handleTextFieldChange('notaMaximaParcial')}
-                                    inputProps={{ min: 0, max: 100, step: 0.01 }}
-                                    helperText="Normalmente 100"
-                                />
-                            </Grid>
-                            <Grid item xs={6}>
-                                <TextField
-                                    fullWidth
-                                    label="Nota Mínima de Aprobación"
-                                    type="number"
-                                    value={estructura.notaMinimaAprobacion}
-                                    onChange={handleTextFieldChange('notaMinimaAprobacion')}
-                                    inputProps={{ min: 0, max: 100, step: 0.01 }}
-                                    helperText="Normalmente 60"
-                                />
-                            </Grid>
                             <Grid item xs={12}>
                                 <TextField
                                     fullWidth
@@ -399,7 +551,7 @@ const ConfiguracionEstructuraDialog = ({
                     onClick={handleGuardar}
                     variant="contained"
                     startIcon={guardando ? <CircularProgress size={20} /> : <SaveIcon />}
-                    disabled={!valido || guardando || loading}
+                    disabled={!valido || guardando || loading || !parcialId || !claseId}
                 >
                     {guardando ? 'Guardando...' : estructuraId ? 'Actualizar' : 'Guardar'}
                 </Button>

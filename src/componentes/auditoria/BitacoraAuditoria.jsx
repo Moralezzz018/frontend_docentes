@@ -161,7 +161,7 @@ const BitacoraAuditoria = () => {
                 {mostrarFiltros && (
                     <Box sx={{ mb: 3, p: 2, bgcolor: '#0d47a1', borderRadius: 1 }}>
                         <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6} md={3}>
+                            <Grid item xs={12} sm={6} md={2.4}>
                                 <FormControl fullWidth size="small">
                                     <InputLabel 
                                         sx={{ 
@@ -197,7 +197,45 @@ const BitacoraAuditoria = () => {
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
+                            <Grid item xs={12} sm={6} md={2.4}>
+                                <FormControl fullWidth size="small">
+                                    <InputLabel 
+                                        sx={{ 
+                                            color: 'rgba(255, 255, 255, 0.9)',
+                                            '&.Mui-focused': { color: 'white' },
+                                            '&.MuiInputLabel-shrink': { color: 'rgba(255, 255, 255, 0.9)' }
+                                        }}
+                                    >
+                                        Entidad
+                                    </InputLabel>
+                                    <Select
+                                        value={filtros.entidad}
+                                        label="Entidad"
+                                        onChange={(e) => handleFiltroChange('entidad', e.target.value)}
+                                        sx={{ 
+                                            bgcolor: '#42a5f5',
+                                            borderRadius: 1,
+                                            color: 'white',
+                                            '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.3)' },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
+                                            '& .MuiSelect-icon': { color: 'white' },
+                                            '& .MuiSelect-select': { color: 'white' }
+                                        }}
+                                    >
+                                        <MenuItem value="">Todas</MenuItem>
+                                        <MenuItem value="Usuarios">Usuarios</MenuItem>
+                                        <MenuItem value="Evaluaciones">Evaluaciones</MenuItem>
+                                        <MenuItem value="EstructuraCalificacion">Estructura Calificación</MenuItem>
+                                        <MenuItem value="Estudiantes">Estudiantes</MenuItem>
+                                        <MenuItem value="Docentes">Docentes</MenuItem>
+                                        <MenuItem value="Clases">Clases</MenuItem>
+                                        <MenuItem value="Asistencias">Asistencias</MenuItem>
+                                        <MenuItem value="Proyectos">Proyectos</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={2.4}>
                                 <FormControl fullWidth size="small">
                                     <InputLabel 
                                         sx={{ 
@@ -229,7 +267,7 @@ const BitacoraAuditoria = () => {
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
+                            <Grid item xs={12} sm={6} md={2.4}>
                                 <TextField
                                     fullWidth
                                     size="small"
@@ -266,7 +304,7 @@ const BitacoraAuditoria = () => {
                                     }}
                                 />
                             </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
+                            <Grid item xs={12} sm={6} md={2.4}>
                                 <TextField
                                     fullWidth
                                     size="small"

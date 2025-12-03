@@ -324,6 +324,7 @@ const Evaluaciones = () => {
                     <TableHead>
                         <TableRow>
                             <TableCell>Título</TableCell>
+                            <TableCell>Parcial</TableCell>
                             <TableCell>Clase</TableCell>
                             <TableCell>Sección</TableCell>
                             <TableCell>Tipo</TableCell>
@@ -340,7 +341,10 @@ const Evaluaciones = () => {
                                 <TableRow key={evaluacion.id}>
                                     <TableCell>{evaluacion.titulo}</TableCell>
                                     <TableCell>
-                                        {evaluacion.clase ? `${evaluacion.clase.codigo} - ${evaluacion.clase.nombre}` : '-'}
+                                        {evaluacion.parcial ? evaluacion.parcial.nombre : '-'}
+                                    </TableCell>
+                                    <TableCell>
+                                        {evaluacion.clase ? `${evaluacion.clase.codigo} - ${evaluacion.clase.nombre}` : 'Sin clase asignada'}
                                     </TableCell>
                                     <TableCell>
                                         {evaluacion.seccion ? evaluacion.seccion.nombre : '-'}
@@ -380,7 +384,7 @@ const Evaluaciones = () => {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={9} align="center">
+                                <TableCell colSpan={10} align="center">
                                     No hay evaluaciones registradas
                                 </TableCell>
                             </TableRow>

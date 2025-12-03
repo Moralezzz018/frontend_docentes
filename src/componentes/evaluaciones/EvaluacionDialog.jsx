@@ -9,8 +9,12 @@ import {
     MenuItem,
     Grid,
     Box,
+    Alert,
+    AlertTitle,
+    Typography,
 } from '@mui/material'
 import { seccionesService } from '@servicios/catalogosService'
+import { estructuraCalificacionService } from '@servicios/estructuraCalificacionService'
 
 const TIPOS_EVALUACION = ['NORMAL', 'REPOSICION', 'EXAMEN']
 const ESTADOS = ['ACTIVO', 'INACTIVO']
@@ -33,6 +37,8 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
     const [errors, setErrors] = useState({})
     const [seccionesFiltradas, setSeccionesFiltradas] = useState([])
     const [loadingSecciones, setLoadingSecciones] = useState(false)
+    const [estructuraCalificacion, setEstructuraCalificacion] = useState(null)
+    const [errorEstructura, setErrorEstructura] = useState(null)
 
     // Actualizar formData cuando cambie evaluacion o se abra el diálogo
     useEffect(() => {
@@ -90,6 +96,37 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
         }
         cargarSecciones()
     }, [formData.claseId])
+    
+    // Verificar estructura de calificación cuando se selecciona parcial y clase
+    useEffect(() => {
+        const verificarEstructura = async () => {
+            if (formData.parcialId && formData.claseId) {
+                try {
+                    const estructura = await estructuraCalificacionService.obtenerPorParcialYClase(
+                        formData.parcialId, 
+                        formData.claseId
+                    )
+                    
+                    if (estructura && estructura.id) {
+                        setEstructuraCalificacion(estructura)
+                        setErrorEstructura(null)
+                    } else {
+                        setEstructuraCalificacion(null)
+                        setErrorEstructura('No existe estructura de calificación para este Parcial y Clase')
+                    }
+                } catch (error) {
+                    console.error('Error verificando estructura:', error)
+                    setEstructuraCalificacion(null)
+                    setErrorEstructura('No existe estructura de calificación para este Parcial y Clase')
+                }
+            } else {
+                setEstructuraCalificacion(null)
+                setErrorEstructura(null)
+            }
+        }
+        
+        verificarEstructura()
+    }, [formData.parcialId, formData.claseId])
     
     // Filtrar parciales según el periodo seleccionado
     const parcialesFiltrados = formData.periodoId 
@@ -185,6 +222,87 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
             </DialogTitle>
             <DialogContent>
                 <Box sx={{ mt: 2 }}>
+                    {errorEstructura && formData.claseId && (
+                        <Alert severity="error" sx={{ mb: 2 }}>
+                            <AlertTitle>⚠️ Estructura de Calificación No Configurada</AlertTitle>
+                            {errorEstructura}
+                            <Box sx={{ mt: 1 }}>
+                                Debe crear primero la estructura de calificación para este Parcial y Clase desde el módulo <strong>"Estructura Calificación"</strong>.
+                            </Box>
+                        </Alert>
+                    )}
+                    
+                    {estructuraCalificacion && formData.claseId && (
+                        <Alert severity="success" sx={{ mb: 2 }}>
+                            <AlertTitle>✅ Estructura de Calificación Configurada</AlertTitle>
+                            <Box sx={{ mt: 1 }}>
+                                <Typography variant="body2" sx={{ mb: 1 }}>
+                                    <strong>Distribución de Pesos del Parcial:</strong>
+                                </Typography>
+                                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                                    <Box sx={{ 
+                                        bgcolor: 'info.light', 
+                                        color: 'info.contrastText', 
+                                        px: 2, 
+                                        py: 1, 
+                                        borderRadius: 1 
+                                    }}>
+                                        <Typography variant="body2">
+                                            <strong>Acumulativo:</strong> {estructuraCalificacion.pesoAcumulativo}%
+                                        </Typography>
+                                        <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                                            (Evaluaciones, tareas, proyectos, participación)
+                                        </Typography>
+                                    </Box>
+                                    <Box sx={{ 
+                                        bgcolor: 'warning.light', 
+                                        color: 'warning.contrastText', 
+                                        px: 2, 
+                                        py: 1, 
+                                        borderRadius: 1 
+                                    }}>
+                                        <Typography variant="body2">
+                                            <strong>Examen:</strong> {estructuraCalificacion.pesoExamen}%
+                                        </Typography>
+                                        <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                                            (Examen final del parcial)
+                                        </Typography>
+                                    </Box>
+                                    {estructuraCalificacion.pesoReposicion > 0 && (
+                                        <Box sx={{ 
+                                            bgcolor: 'error.light', 
+                                            color: 'error.contrastText', 
+                                            px: 2, 
+                                            py: 1, 
+                                            borderRadius: 1 
+                                        }}>
+                                            <Typography variant="body2">
+                                                <strong>Reposición:</strong> {estructuraCalificacion.pesoReposicion}%
+                                            </Typography>
+                                            <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                                                (Examen de segunda oportunidad)
+                                            </Typography>
+                                        </Box>
+                                    )}
+                                </Box>
+                                <Typography variant="caption" sx={{ display: 'block', mt: 1.5, fontStyle: 'italic' }}>
+                                    💡 Tip: Las evaluaciones tipo <strong>NORMAL</strong> cuentan para el <strong>Acumulativo</strong>.
+                                    Selecciona tipo <strong>EXAMEN</strong> o <strong>REPOSICION</strong> según corresponda.
+                                </Typography>
+                            </Box>
+                        </Alert>
+                    )}
+
+                    {!formData.claseId && formData.parcialId && (
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                            <AlertTitle>ℹ️ Evaluación sin Clase Específica</AlertTitle>
+                            Esta evaluación no está asignada a una clase específica. No requiere estructura de calificación.
+                            <Typography variant="caption" sx={{ display: 'block', mt: 1 }}>
+                                Útil para evaluaciones generales o plantillas que se asignarán posteriormente.
+                            </Typography>
+                        </Alert>
+                    )}
+                    
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <TextField
@@ -381,7 +499,11 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose}>Cancelar</Button>
-                <Button onClick={handleSubmit} variant="contained">
+                <Button 
+                    onClick={handleSubmit} 
+                    variant="contained"
+                    disabled={formData.claseId && !!errorEstructura}
+                >
                     {evaluacion ? 'Guardar Cambios' : 'Crear'}
                 </Button>
             </DialogActions>

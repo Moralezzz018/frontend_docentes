@@ -24,20 +24,8 @@ export const estructuraCalificacionService = {
 
   // Guardar nueva estructura de calificación
   guardar: async (data) => {
-    console.log('🔍 DEBUG estructuraCalificacionService.guardar():')
-    console.log('  - URL del endpoint:', API_ENDPOINTS.ESTRUCTURA_CALIFICACION.GUARDAR)
-    console.log('  - Datos a enviar:', data)
-    try {
-      const response = await apiClient.post(API_ENDPOINTS.ESTRUCTURA_CALIFICACION.GUARDAR, data)
-      console.log('  - ✅ Respuesta exitosa:', response)
-      return response.data
-    } catch (error) {
-      console.log('  - ❌ Error capturado:', error)
-      console.log('  - URL solicitada:', error.config?.url)
-      console.log('  - Status:', error.response?.status)
-      console.log('  - Mensaje:', error.message)
-      throw error
-    }
+    const response = await apiClient.post(API_ENDPOINTS.ESTRUCTURA_CALIFICACION.GUARDAR, data)
+    return response.data
   },
 
   // Editar estructura de calificación
