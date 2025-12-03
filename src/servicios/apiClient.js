@@ -12,6 +12,12 @@ const apiClient = axios.create({
 // Request interceptor
 apiClient.interceptors.request.use(
   (config) => {
+    console.log('🔍 DEBUG apiClient interceptor:')
+    console.log('  - baseURL:', config.baseURL)
+    console.log('  - url:', config.url)
+    console.log('  - URL final:', config.baseURL + config.url)
+    console.log('  - method:', config.method)
+    
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`

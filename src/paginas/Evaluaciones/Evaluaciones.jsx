@@ -28,6 +28,7 @@ import LoadingSpinner from '@componentes/common/LoadingSpinner'
 import ErrorMessage from '@componentes/common/ErrorMessage'
 import ConfirmDialog from '@componentes/common/ConfirmDialog'
 import EvaluacionDialog from '@componentes/evaluaciones/EvaluacionDialog'
+import RegistrarNotasDialog from '@componentes/evaluaciones/RegistrarNotasDialog'
 import { evaluacionesService } from '@servicios/evaluacionesService'
 import { periodosService, parcialesService, clasesService } from '@servicios/catalogosService'
 
@@ -39,6 +40,7 @@ const Evaluaciones = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [dialogOpen, setDialogOpen] = useState(false)
+    const [notasDialogOpen, setNotasDialogOpen] = useState(false)
     const [confirmOpen, setConfirmOpen] = useState(false)
     const [selectedEvaluacion, setSelectedEvaluacion] = useState(null)
     const [evaluacionToDelete, setEvaluacionToDelete] = useState(null)
@@ -137,6 +139,21 @@ const Evaluaciones = () => {
     const handleCloseDialog = () => {
         setSelectedEvaluacion(null)
         setDialogOpen(false)
+    }
+
+    const handleOpenNotasDialog = (evaluacion) => {
+        setSelectedEvaluacion(evaluacion)
+        setNotasDialogOpen(true)
+    }
+
+    const handleCloseNotasDialog = () => {
+        setSelectedEvaluacion(null)
+        setNotasDialogOpen(false)
+    }
+
+    const handleNotaGuardada = () => {
+        // Recargar evaluaciones para actualizar estadísticas
+        cargarDatos()
     }
 
     const handleSave = async (data) => {
@@ -338,16 +355,23 @@ const Evaluaciones = () => {
                                             size="small" 
                                             color="primary"
                                             onClick={() => handleOpenDialog(evaluacion)}
+                                            title="Editar evaluación"
                                         >
                                             <EditIcon />
                                         </IconButton>
-                                        <IconButton size="small" color="info">
+                                        <IconButton 
+                                            size="small" 
+                                            color="info"
+                                            onClick={() => handleOpenNotasDialog(evaluacion)}
+                                            title="Registrar notas"
+                                        >
                                             <AssignmentIcon />
                                         </IconButton>
                                         <IconButton 
                                             size="small" 
                                             color="error"
                                             onClick={() => handleDeleteClick(evaluacion)}
+                                            title="Eliminar evaluación"
                                         >
                                             <DeleteIcon />
                                         </IconButton>
@@ -374,6 +398,14 @@ const Evaluaciones = () => {
                 periodos={periodos}
                 parciales={parciales}
                 clases={clases}
+            />
+
+            {/* Dialog para registrar notas */}
+            <RegistrarNotasDialog
+                open={notasDialogOpen}
+                onClose={handleCloseNotasDialog}
+                evaluacion={selectedEvaluacion}
+                onNotaGuardada={handleNotaGuardada}
             />
 
             {/* Dialog de confirmación para eliminar */}

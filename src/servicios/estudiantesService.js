@@ -60,5 +60,10 @@ export const estudiantesService = {
     obtenerPorClase: async (claseId) => {
         const response = await apiClient.get(`${ESTUDIANTES.POR_CLASE}?claseId=${claseId}`)
         return response.data
+    },
+
+    listarPorClase: async (params = {}) => {
+        const response = await apiClient.get(ESTUDIANTES.POR_CLASE, { params })
+        return response.data
     }
 }

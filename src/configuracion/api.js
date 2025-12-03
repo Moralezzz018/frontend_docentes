@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
 
 export const API_ENDPOINTS = {
     // Autenticación
@@ -132,6 +132,42 @@ export const API_ENDPOINTS = {
         LISTAR: `${API_BASE_URL}/api/grupos/listar`,
         ELIMINAR_CLASE: `${API_BASE_URL}/api/grupos/eliminar-clase`,
     },
+
+    // Análisis
+    ANALISIS: {
+        PARCIAL: `${API_BASE_URL}/api/analisis/parcial`,
+        PERIODO: `${API_BASE_URL}/api/analisis/periodo`,
+        REPORTE_ESTUDIANTE: `${API_BASE_URL}/api/analisis/reporte/estudiante`,
+        REPORTE_CLASE: `${API_BASE_URL}/api/analisis/reporte/clase`,
+        REPORTE_DOCENTE: `${API_BASE_URL}/api/analisis/reporte/docente`,
+    },
+
+    // Auditoría
+    AUDITORIA: {
+        LOGS: `${API_BASE_URL}/api/auditoria/logs`,
+        ESTADISTICAS: `${API_BASE_URL}/api/auditoria/estadisticas`,
+        DETALLE: `${API_BASE_URL}/api/auditoria/logs`, // + /:id
+        LIMPIAR: `${API_BASE_URL}/api/auditoria/limpiar`,
+    },
+
+    // Docentes
+    DOCENTES: {
+        LISTAR: `${API_BASE_URL}/api/docentes/Listar`,
+        GUARDAR: `${API_BASE_URL}/api/docentes/guardar`,
+        EDITAR: `${API_BASE_URL}/api/docentes/Editar`,
+        ELIMINAR: `${API_BASE_URL}/api/docentes/Eliminar`,
+        FILTRAR_NOMBRE: `${API_BASE_URL}/api/docentes/filtrar-nombre`,
+    },
+
+    // Estructura de Calificación
+    ESTRUCTURA_CALIFICACION: {
+        LISTAR: '/api/estructura-calificacion/listar',
+        OBTENER: '/api/estructura-calificacion/obtener',
+        POR_PARCIAL_CLASE: '/api/estructura-calificacion/por-parcial-clase',
+        GUARDAR: '/api/estructura-calificacion/guardar',
+        EDITAR: '/api/estructura-calificacion/editar',
+        ELIMINAR: '/api/estructura-calificacion/eliminar',
+    },
 }
 
 // Exportar endpoints individuales para compatibilidad
@@ -149,7 +185,11 @@ export const {
     USUARIOS,
     NOTIFICACIONES,
     CORREO,
-    GRUPOS
+    GRUPOS,
+    ANALISIS,
+    AUDITORIA,
+    DOCENTES,
+    ESTRUCTURA_CALIFICACION
 } = API_ENDPOINTS
 
 export default API_BASE_URL

@@ -33,7 +33,8 @@ export const MODULOS_POR_ROL = {
         'usuarios',
         'analisis',
         'auditoria',
-        'notificaciones'
+        'notificaciones',
+        'estructura-calificacion'
     ],
     [ROLES.DOCENTE]: [
         'dashboard',
@@ -48,14 +49,16 @@ export const MODULOS_POR_ROL = {
         'proyectos',
         'rifas',
         'analisis',
-        'notificaciones'
+        'notificaciones',
+        'estructura-calificacion'
         // NO incluye 'usuarios' ni 'auditoria'
     ],
     [ROLES.ESTUDIANTE]: [
         'dashboard',
         'evaluaciones',
-        'asistencias'
-        // Solo evaluaciones y asistencias
+        'asistencias',
+        'estructura-calificacion'
+        // Solo evaluaciones, asistencias y estructura de calificación
     ]
 }
 

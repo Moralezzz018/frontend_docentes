@@ -1,5 +1,6 @@
-import { Drawer, Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider, Toolbar, Typography } from '@mui/material'
+import { Drawer, Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider, Toolbar, Typography, Collapse } from '@mui/material'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useState } from 'react'
 import { useAuthStore } from '@almacen/authStore'
 import { tieneAccesoAModulo } from '@configuracion/rolesConfig'
 import Logo from '@componentes/common/Logo'
@@ -17,24 +18,71 @@ import MeetingRoomIcon from '@mui/icons-material/MeetingRoom'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import HistoryIcon from '@mui/icons-material/History'
 import NotificationsIcon from '@mui/icons-material/Notifications'
+import PercentIcon from '@mui/icons-material/Percent'
+import SettingsIcon from '@mui/icons-material/Settings'
+import ExpandLess from '@mui/icons-material/ExpandLess'
+import ExpandMore from '@mui/icons-material/ExpandMore'
+import SchoolIcon from '@mui/icons-material/School'
+import GroupsIcon from '@mui/icons-material/Groups'
 
-// Definición completa de todos los módulos del sistema
-const todosLosModulos = [
-    { id: 'dashboard', text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-    { id: 'evaluaciones', text: 'Evaluaciones', icon: <AssignmentIcon />, path: '/evaluaciones' },
-    { id: 'estudiantes', text: 'Estudiantes', icon: <PeopleIcon />, path: '/estudiantes' },
-    { id: 'clases', text: 'Clases', icon: <ClassIcon />, path: '/clases' },
-    { id: 'secciones', text: 'Secciones', icon: <ViewListIcon />, path: '/secciones' },
-    { id: 'periodos', text: 'Periodos', icon: <CalendarTodayIcon />, path: '/periodos' },
-    { id: 'parciales', text: 'Parciales', icon: <ViewListIcon />, path: '/parciales' },
-    { id: 'aulas', text: 'Aulas', icon: <MeetingRoomIcon />, path: '/aulas' },
-    { id: 'asistencias', text: 'Asistencias', icon: <CheckCircleIcon />, path: '/asistencias' },
-    { id: 'proyectos', text: 'Proyectos', icon: <WorkIcon />, path: '/proyectos' },
-    { id: 'rifas', text: 'Rifas', icon: <CasinoIcon />, path: '/rifas' },
-    { id: 'usuarios', text: 'Usuarios', icon: <AccountCircleIcon />, path: '/usuarios' },
-    { id: 'analisis', text: 'Análisis', icon: <BarChartIcon />, path: '/analisis' },
-    { id: 'auditoria', text: 'Auditoría', icon: <HistoryIcon />, path: '/auditoria' },
-    { id: 'notificaciones', text: 'Notificaciones', icon: <NotificationsIcon />, path: '/notificaciones' },
+// Definición de módulos organizados en categorías desplegables
+const categoriasModulos = [
+    {
+        id: 'principal',
+        titulo: 'Principal',
+        icon: <DashboardIcon />,
+        collapsible: false,
+        modulos: [
+            { id: 'dashboard', text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+            { id: 'notificaciones', text: 'Notificaciones', icon: <NotificationsIcon />, path: '/notificaciones' },
+        ]
+    },
+    {
+        id: 'configuracion',
+        titulo: 'Configuración',
+        icon: <SettingsIcon />,
+        collapsible: true,
+        modulos: [
+            { id: 'periodos', text: 'Periodos', icon: <CalendarTodayIcon />, path: '/periodos' },
+            { id: 'parciales', text: 'Parciales', icon: <ViewListIcon />, path: '/parciales' },
+            { id: 'aulas', text: 'Aulas', icon: <MeetingRoomIcon />, path: '/aulas' },
+            { id: 'secciones', text: 'Secciones', icon: <ViewListIcon />, path: '/secciones' },
+            { id: 'estructura-calificacion', text: 'Estructura Calificación', icon: <PercentIcon />, path: '/estructura-calificacion' },
+        ]
+    },
+    {
+        id: 'estudiantes',
+        titulo: 'Estudiantes',
+        icon: <SchoolIcon />,
+        collapsible: true,
+        modulos: [
+            { id: 'estudiantes', text: 'Gestión Estudiantes', icon: <PeopleIcon />, path: '/estudiantes' },
+            { id: 'clases', text: 'Clases', icon: <ClassIcon />, path: '/clases' },
+            { id: 'proyectos', text: 'Proyectos', icon: <WorkIcon />, path: '/proyectos' },
+            { id: 'rifas', text: 'Rifas', icon: <CasinoIcon />, path: '/rifas' },
+        ]
+    },
+    {
+        id: 'academico',
+        titulo: 'Académico',
+        icon: <AssignmentIcon />,
+        collapsible: true,
+        modulos: [
+            { id: 'asistencias', text: 'Asistencias', icon: <CheckCircleIcon />, path: '/asistencias' },
+            { id: 'evaluaciones', text: 'Evaluaciones', icon: <AssignmentIcon />, path: '/evaluaciones' },
+        ]
+    },
+    {
+        id: 'administracion',
+        titulo: 'Administración',
+        icon: <GroupsIcon />,
+        collapsible: true,
+        modulos: [
+            { id: 'usuarios', text: 'Usuarios', icon: <AccountCircleIcon />, path: '/usuarios' },
+            { id: 'analisis', text: 'Análisis', icon: <BarChartIcon />, path: '/analisis' },
+            { id: 'auditoria', text: 'Auditoría', icon: <HistoryIcon />, path: '/auditoria' },
+        ]
+    },
 ]
 
 const Sidebar = ({ drawerWidth, mobileOpen, handleDrawerToggle }) => {
@@ -42,13 +90,31 @@ const Sidebar = ({ drawerWidth, mobileOpen, handleDrawerToggle }) => {
     const location = useLocation()
     const user = useAuthStore((state) => state.user)
     
+    // Estado para controlar qué categorías están abiertas
+    const [openCategories, setOpenCategories] = useState({
+        configuracion: false,
+        estudiantes: false,
+        academico: false,
+        administracion: false,
+    })
+
+    const handleToggleCategory = (categoryId) => {
+        setOpenCategories(prev => ({
+            ...prev,
+            [categoryId]: !prev[categoryId]
+        }))
+    }
+    
     // Obtener el rol del usuario
     const rolUsuario = user?.rol?.nombre || null
 
-    // Filtrar los módulos según el rol del usuario
-    const menuItems = todosLosModulos.filter((modulo) => 
-        tieneAccesoAModulo(rolUsuario, modulo.id)
-    )
+    // Filtrar las categorías y módulos según el rol del usuario
+    const categoriasFiltradas = categoriasModulos
+        .map(categoria => ({
+            ...categoria,
+            modulos: categoria.modulos.filter(modulo => tieneAccesoAModulo(rolUsuario, modulo.id))
+        }))
+        .filter(categoria => categoria.modulos.length > 0)
 
     const drawer = (
         <Box>
@@ -68,22 +134,76 @@ const Sidebar = ({ drawerWidth, mobileOpen, handleDrawerToggle }) => {
                 </Box>
             </Toolbar>
             <Divider />
-            <List>
-                {menuItems.map((item) => (
-                    <ListItem key={item.text} disablePadding>
-                        <ListItemButton
-                            selected={location.pathname === item.path}
-                            onClick={() => {
-                                navigate(item.path)
-                                if (mobileOpen) handleDrawerToggle()
-                            }}
-                        >
-                            <ListItemIcon>{item.icon}</ListItemIcon>
-                            <ListItemText primary={item.text} />
-                        </ListItemButton>
-                    </ListItem>
-                ))}
-            </List>
+            <Box sx={{ overflow: 'auto' }}>
+                <List sx={{ py: 1 }}>
+                    {categoriasFiltradas.map((categoria) => (
+                        <Box key={categoria.id}>
+                            {!categoria.collapsible ? (
+                                // Categorías no colapsables (Principal)
+                                categoria.modulos.map((item) => (
+                                    <ListItem key={item.text} disablePadding>
+                                        <ListItemButton
+                                            selected={location.pathname === item.path}
+                                            onClick={() => {
+                                                navigate(item.path)
+                                                if (mobileOpen) handleDrawerToggle()
+                                            }}
+                                        >
+                                            <ListItemIcon>{item.icon}</ListItemIcon>
+                                            <ListItemText primary={item.text} />
+                                        </ListItemButton>
+                                    </ListItem>
+                                ))
+                            ) : (
+                                // Categorías colapsables
+                                <>
+                                    <ListItemButton 
+                                        onClick={() => handleToggleCategory(categoria.id)}
+                                        sx={{
+                                            backgroundColor: openCategories[categoria.id] ? 'action.selected' : 'transparent',
+                                            '&:hover': {
+                                                backgroundColor: 'action.hover',
+                                            }
+                                        }}
+                                    >
+                                        <ListItemIcon>{categoria.icon}</ListItemIcon>
+                                        <ListItemText 
+                                            primary={categoria.titulo}
+                                            primaryTypographyProps={{ 
+                                                fontWeight: 600,
+                                                fontSize: '0.95rem'
+                                            }} 
+                                        />
+                                        {openCategories[categoria.id] ? <ExpandLess /> : <ExpandMore />}
+                                    </ListItemButton>
+                                    <Collapse in={openCategories[categoria.id]} timeout="auto" unmountOnExit>
+                                        <List component="div" disablePadding>
+                                            {categoria.modulos.map((item) => (
+                                                <ListItem key={item.text} disablePadding>
+                                                    <ListItemButton
+                                                        selected={location.pathname === item.path}
+                                                        onClick={() => {
+                                                            navigate(item.path)
+                                                            if (mobileOpen) handleDrawerToggle()
+                                                        }}
+                                                        sx={{ pl: 4 }}
+                                                    >
+                                                        <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+                                                        <ListItemText 
+                                                            primary={item.text}
+                                                            primaryTypographyProps={{ fontSize: '0.875rem' }}
+                                                        />
+                                                    </ListItemButton>
+                                                </ListItem>
+                                            ))}
+                                        </List>
+                                    </Collapse>
+                                </>
+                            )}
+                        </Box>
+                    ))}
+                </List>
+            </Box>
         </Box>
     )
 
