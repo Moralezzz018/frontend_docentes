@@ -29,6 +29,7 @@ import ErrorMessage from '@componentes/common/ErrorMessage'
 import ConfirmDialog from '@componentes/common/ConfirmDialog'
 import EvaluacionDialog from '@componentes/evaluaciones/EvaluacionDialog'
 import RegistrarNotasDialog from '@componentes/evaluaciones/RegistrarNotasDialog'
+import PanelEstructuraCalificacion from '@componentes/evaluaciones/PanelEstructuraCalificacion'
 import { evaluacionesService } from '@servicios/evaluacionesService'
 import { periodosService, parcialesService, clasesService } from '@servicios/catalogosService'
 
@@ -36,6 +37,7 @@ const Evaluaciones = () => {
     const [evaluaciones, setEvaluaciones] = useState([])
     const [periodos, setPeriodos] = useState([])
     const [parciales, setParciales] = useState([])
+    const [parcialesFiltrados, setParcialesFiltrados] = useState([]) // Parciales filtrados por periodo
     const [clases, setClases] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
@@ -109,6 +111,29 @@ const Evaluaciones = () => {
     useEffect(() => {
         cargarDatos()
     }, []) // Solo cargar al montar el componente
+
+    // Efecto para filtrar parciales cuando cambia el periodo
+    useEffect(() => {
+        if (filtros.periodoId) {
+            const parcialesPorPeriodo = parciales.filter(
+                parcial => parcial.periodoId === parseInt(filtros.periodoId)
+            )
+            setParcialesFiltrados(parcialesPorPeriodo)
+            
+            // Si el parcial seleccionado no pertenece al periodo, limpiarlo
+            if (filtros.parcialId) {
+                const parcialValido = parcialesPorPeriodo.find(
+                    p => p.id === parseInt(filtros.parcialId)
+                )
+                if (!parcialValido) {
+                    setFiltros(prev => ({ ...prev, parcialId: '' }))
+                }
+            }
+        } else {
+            setParcialesFiltrados([])
+            setFiltros(prev => ({ ...prev, parcialId: '' }))
+        }
+    }, [filtros.periodoId, parciales])
 
     const handleFiltroChange = (e) => {
         const { name, value } = e.target
@@ -289,9 +314,11 @@ const Evaluaciones = () => {
                             name="parcialId"
                             value={filtros.parcialId}
                             onChange={handleFiltroChange}
+                            disabled={!filtros.periodoId} // Deshabilitar si no hay periodo seleccionado
+                            helperText={!filtros.periodoId ? 'Seleccione un periodo primero' : ''}
                         >
                             <MenuItem value="">Todos</MenuItem>
-                            {Array.isArray(parciales) && parciales.map((parcial) => (
+                            {Array.isArray(parcialesFiltrados) && parcialesFiltrados.map((parcial) => (
                                 <MenuItem key={parcial.id} value={parcial.id}>
                                     {parcial.nombre}
                                 </MenuItem>
@@ -299,18 +326,35 @@ const Evaluaciones = () => {
                         </TextField>
                     </Grid>
                     <Grid item xs={12} sm={4}>
-                        <Box sx={{ display: 'flex', gap: 1, height: '100%', alignItems: 'center' }}>
+                        <TextField
+                            fullWidth
+                            select
+                            label="Clase"
+                            name="claseId"
+                            value={filtros.claseId}
+                            onChange={handleFiltroChange}
+                        >
+                            <MenuItem value="">Todas</MenuItem>
+                            {Array.isArray(clases) && clases.map((clase) => (
+                                <MenuItem key={clase.id} value={clase.id}>
+                                    {clase.codigo} - {clase.nombre}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
                             <Button
                                 variant="contained"
                                 onClick={aplicarFiltros}
-                                fullWidth
+                                sx={{ minWidth: 120 }}
                             >
                                 Aplicar
                             </Button>
                             <Button
                                 variant="outlined"
                                 onClick={limpiarFiltros}
-                                fullWidth
+                                sx={{ minWidth: 120 }}
                             >
                                 Limpiar
                             </Button>
@@ -393,6 +437,15 @@ const Evaluaciones = () => {
                 </Table>
             </TableContainer>
 
+            {/* Panel de Estructura de Calificación - Solo se muestra con filtros activos */}
+            {filtros.claseId && filtros.parcialId && (
+                <PanelEstructuraCalificacion
+                    parcialId={filtros.parcialId}
+                    claseId={filtros.claseId}
+                    evaluaciones={evaluaciones}
+                />
+            )}
+
             {/* Dialog para crear/editar */}
             <EvaluacionDialog
                 open={dialogOpen}
@@ -402,6 +455,7 @@ const Evaluaciones = () => {
                 periodos={periodos}
                 parciales={parciales}
                 clases={clases}
+                evaluacionesExistentes={evaluaciones}
             />
 
             {/* Dialog para registrar notas */}

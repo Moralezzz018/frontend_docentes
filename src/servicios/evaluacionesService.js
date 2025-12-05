@@ -9,6 +9,14 @@ export const evaluacionesService = {
     return Array.isArray(response.data) ? response.data : []
   },
 
+  // Listar exámenes por clase (para reposiciones)
+  listarExamenesPorClase: async (claseId) => {
+    const response = await apiClient.get(API_ENDPOINTS.EVALUACIONES.LISTAR_EXAMENES, {
+      params: { claseId }
+    })
+    return Array.isArray(response.data) ? response.data : []
+  },
+
   // Crear evaluación
   guardar: async (data) => {
     const response = await apiClient.post(API_ENDPOINTS.EVALUACIONES.GUARDAR, data)

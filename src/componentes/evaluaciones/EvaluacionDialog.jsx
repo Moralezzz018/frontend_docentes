@@ -15,11 +15,16 @@ import {
 } from '@mui/material'
 import { seccionesService } from '@servicios/catalogosService'
 import { estructuraCalificacionService } from '@servicios/estructuraCalificacionService'
+import { evaluacionesService } from '@servicios/evaluacionesService'
 
-const TIPOS_EVALUACION = ['NORMAL', 'REPOSICION', 'EXAMEN']
+const TIPOS_EVALUACION = [
+    { value: 'NORMAL', label: 'Evaluación' },
+    { value: 'REPOSICION', label: 'Reposición' },
+    { value: 'EXAMEN', label: 'Examen' }
+]
 const ESTADOS = ['ACTIVO', 'INACTIVO']
 
-const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales = [], periodos = [], clases = [] }) => {
+const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales = [], periodos = [], clases = [], evaluacionesExistentes = [] }) => {
     const [formData, setFormData] = useState({
         titulo: '',
         fechaInicio: '',
@@ -32,6 +37,7 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
         claseId: '',
         seccionId: '',
         descripcion: '',
+        evaluacionReemplazadaId: '',
     })
 
     const [errors, setErrors] = useState({})
@@ -39,6 +45,9 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
     const [loadingSecciones, setLoadingSecciones] = useState(false)
     const [estructuraCalificacion, setEstructuraCalificacion] = useState(null)
     const [errorEstructura, setErrorEstructura] = useState(null)
+    const [advertenciaExceso, setAdvertenciaExceso] = useState(null)
+    const [examenesDisponibles, setExamenesDisponibles] = useState([])
+    const [loadingExamenes, setLoadingExamenes] = useState(false)
 
     // Actualizar formData cuando cambie evaluacion o se abra el diálogo
     useEffect(() => {
@@ -56,6 +65,7 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
                     claseId: evaluacion.claseId || '',
                     seccionId: evaluacion.seccionId || '',
                     descripcion: evaluacion.estructura?.descripcion || '',
+                    evaluacionReemplazadaId: evaluacion.evaluacionReemplazadaId || '',
                 })
             } else {
                 setFormData({
@@ -70,9 +80,11 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
                     claseId: '',
                     seccionId: '',
                     descripcion: '',
+                    evaluacionReemplazadaId: '',
                 })
             }
             setErrors({})
+            setExamenesDisponibles([])
         }
     }, [open, evaluacion])
     
@@ -96,6 +108,27 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
         }
         cargarSecciones()
     }, [formData.claseId])
+    
+    // Cargar exámenes disponibles cuando es tipo REPOSICION y hay clase seleccionada
+    useEffect(() => {
+        const cargarExamenes = async () => {
+            if (formData.tipo === 'REPOSICION' && formData.claseId) {
+                setLoadingExamenes(true)
+                try {
+                    const examenes = await evaluacionesService.listarExamenesPorClase(formData.claseId)
+                    setExamenesDisponibles(Array.isArray(examenes) ? examenes : [])
+                } catch (error) {
+                    console.error('Error cargando exámenes:', error)
+                    setExamenesDisponibles([])
+                } finally {
+                    setLoadingExamenes(false)
+                }
+            } else {
+                setExamenesDisponibles([])
+            }
+        }
+        cargarExamenes()
+    }, [formData.tipo, formData.claseId])
     
     // Verificar estructura de calificación cuando se selecciona parcial y clase
     useEffect(() => {
@@ -137,14 +170,38 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
         const { name, value } = e.target
         const updates = { [name]: value }
         
+        // Si cambia el tipo a REPOSICION, requiere clase
+        if (name === 'tipo' && value === 'REPOSICION' && !formData.claseId) {
+            // No hacer nada especial, se manejará con validación
+        }
+        
+        // Si cambia el tipo desde REPOSICION, limpiar evaluacionReemplazadaId
+        if (name === 'tipo' && formData.tipo === 'REPOSICION' && value !== 'REPOSICION') {
+            updates.evaluacionReemplazadaId = ''
+        }
+        
+        // Si selecciona un examen a reponer, auto-poblar campos
+        if (name === 'evaluacionReemplazadaId' && value) {
+            const examenSeleccionado = examenesDisponibles.find(ex => ex.id === parseInt(value))
+            if (examenSeleccionado) {
+                updates.notaMaxima = examenSeleccionado.notaMaxima
+                updates.parcialId = examenSeleccionado.parcialId
+                updates.periodoId = examenSeleccionado.periodoId
+                updates.seccionId = examenSeleccionado.seccionId || ''
+            }
+        }
+        
         // Si cambia el periodo, limpiar el parcial seleccionado
         if (name === 'periodoId') {
             updates.parcialId = ''
         }
         
-        // Si cambia la clase, limpiar la sección seleccionada
+        // Si cambia la clase, limpiar la sección seleccionada y evaluacion reemplazada
         if (name === 'claseId') {
             updates.seccionId = ''
+            if (formData.tipo === 'REPOSICION') {
+                updates.evaluacionReemplazadaId = ''
+            }
         }
         
         setFormData(prev => ({
@@ -188,13 +245,115 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
         if (!formData.periodoId) {
             newErrors.periodoId = 'Seleccione un periodo'
         }
+        
+        // Validación específica para reposiciones
+        if (formData.tipo === 'REPOSICION') {
+            if (!formData.claseId) {
+                newErrors.claseId = 'La clase es obligatoria para reposiciones'
+            }
+            if (!formData.evaluacionReemplazadaId) {
+                newErrors.evaluacionReemplazadaId = 'Debe seleccionar el examen a reponer'
+            }
+        }
 
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
     }
 
+    // Validar si se excede el límite de puntos según la estructura
+    const validarLimites = () => {
+        if (!estructuraCalificacion || !formData.claseId || !formData.parcialId) {
+            return null; // No hay estructura configurada, no validar
+        }
+
+        // Filtrar evaluaciones del mismo parcial y clase (excluyendo la actual si es edición)
+        const evaluacionesFiltradas = evaluacionesExistentes.filter(ev => 
+            ev.parcialId === parseInt(formData.parcialId) &&
+            ev.claseId === parseInt(formData.claseId) &&
+            (!evaluacion || ev.id !== evaluacion.id) // Excluir la evaluación actual si es edición
+        );
+
+        // Calcular totales actuales por tipo
+        const totales = {
+            acumulativo: 0,
+            examen: 0,
+            reposicion: 0,
+        };
+
+        evaluacionesFiltradas.forEach(ev => {
+            const puntos = parseFloat(ev.notaMaxima || 0);
+            const tipo = ev.tipo || 'NORMAL';
+            
+            if (tipo === 'NORMAL') {
+                totales.acumulativo += puntos;
+            } else if (tipo === 'EXAMEN') {
+                totales.examen += puntos;
+            } else if (tipo === 'REPOSICION') {
+                totales.reposicion += puntos;
+            }
+        });
+
+        // Agregar la nueva evaluación a los totales
+        const nuevoPunto = parseFloat(formData.notaMaxima || 0);
+        const nuevoTipo = formData.tipo || 'NORMAL';
+        
+        if (nuevoTipo === 'NORMAL') {
+            totales.acumulativo += nuevoPunto;
+        } else if (nuevoTipo === 'EXAMEN') {
+            totales.examen += nuevoPunto;
+        } else if (nuevoTipo === 'REPOSICION') {
+            totales.reposicion += nuevoPunto;
+        }
+
+        // Obtener límites de la estructura
+        const limites = {
+            acumulativo: parseFloat(estructuraCalificacion.pesoAcumulativo || 0),
+            examen: parseFloat(estructuraCalificacion.pesoExamen || 0),
+            reposicion: parseFloat(estructuraCalificacion.pesoReposicion || 0),
+        };
+
+        // Verificar excesos
+        const excesos = [];
+        if (totales.acumulativo > limites.acumulativo) {
+            excesos.push({
+                tipo: 'Acumulativo',
+                total: totales.acumulativo,
+                limite: limites.acumulativo,
+                exceso: totales.acumulativo - limites.acumulativo
+            });
+        }
+        if (totales.examen > limites.examen) {
+            excesos.push({
+                tipo: 'Examen',
+                total: totales.examen,
+                limite: limites.examen,
+                exceso: totales.examen - limites.examen
+            });
+        }
+        if (totales.reposicion > limites.reposicion) {
+            excesos.push({
+                tipo: 'Reposición',
+                total: totales.reposicion,
+                limite: limites.reposicion,
+                exceso: totales.reposicion - limites.reposicion
+            });
+        }
+
+        return excesos.length > 0 ? excesos : null;
+    };
+
     const handleSubmit = () => {
         if (validateForm()) {
+            // Validar límites antes de guardar (excepto para reposiciones)
+            if (formData.tipo !== 'REPOSICION') {
+                const excesos = validarLimites();
+                
+                if (excesos) {
+                    setAdvertenciaExceso(excesos);
+                    return; // No guardar si hay excesos
+                }
+            }
+
             const data = {
                 titulo: formData.titulo,
                 fechaInicio: new Date(formData.fechaInicio).toISOString(),
@@ -211,6 +370,12 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
                     descripcion: formData.descripcion || ''
                 },
             }
+            
+            // Agregar evaluacionReemplazadaId si es reposición
+            if (formData.tipo === 'REPOSICION' && formData.evaluacionReemplazadaId) {
+                data.evaluacionReemplazadaId = parseInt(formData.evaluacionReemplazadaId)
+            }
+            
             onSave(data)
         }
     }
@@ -222,6 +387,41 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
             </DialogTitle>
             <DialogContent>
                 <Box sx={{ mt: 2 }}>
+                    {/* Advertencia de exceso de puntos */}
+                    {advertenciaExceso && (
+                        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setAdvertenciaExceso(null)}>
+                            <AlertTitle>⚠️ ADVERTENCIA: Límite de Puntos Excedido</AlertTitle>
+                            <Typography variant="body2" sx={{ mb: 1 }}>
+                                La evaluación que intenta guardar excede el límite permitido en la estructura de calificación:
+                            </Typography>
+                            {advertenciaExceso.map((exceso, idx) => (
+                                <Box key={idx} sx={{ 
+                                    bgcolor: 'error.dark', 
+                                    p: 1.5, 
+                                    borderRadius: 1, 
+                                    mb: 1,
+                                    color: 'white'
+                                }}>
+                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                        📝 {exceso.tipo}:
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ display: 'block' }}>
+                                        • Total asignado: <strong>{exceso.total.toFixed(2)} pts</strong>
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ display: 'block' }}>
+                                        • Límite permitido: <strong>{exceso.limite.toFixed(2)} pts</strong>
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ display: 'block', color: '#ffeb3b', fontWeight: 600 }}>
+                                        • EXCESO: <strong>{exceso.exceso.toFixed(2)} pts</strong>
+                                    </Typography>
+                                </Box>
+                            ))}
+                            <Typography variant="body2" sx={{ mt: 2, fontWeight: 600 }}>
+                                Por favor, reduzca la nota máxima de esta evaluación o elimine otras evaluaciones del mismo tipo.
+                            </Typography>
+                        </Alert>
+                    )}
+
                     {errorEstructura && formData.claseId && (
                         <Alert severity="error" sx={{ mb: 2 }}>
                             <AlertTitle>⚠️ Estructura de Calificación No Configurada</AlertTitle>
@@ -286,8 +486,8 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
                                     )}
                                 </Box>
                                 <Typography variant="caption" sx={{ display: 'block', mt: 1.5, fontStyle: 'italic' }}>
-                                    💡 Tip: Las evaluaciones tipo <strong>NORMAL</strong> cuentan para el <strong>Acumulativo</strong>.
-                                    Selecciona tipo <strong>EXAMEN</strong> o <strong>REPOSICION</strong> según corresponda.
+                                    💡 Tip: Las evaluaciones tipo <strong>Evaluación</strong> cuentan para el <strong>Acumulativo</strong>.
+                                    Selecciona tipo <strong>Examen</strong> o <strong>Reposición</strong> según corresponda.
                                 </Typography>
                             </Box>
                         </Alert>
@@ -357,12 +557,49 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
                                 onChange={handleChange}
                             >
                                 {TIPOS_EVALUACION.map((tipo) => (
-                                    <MenuItem key={tipo} value={tipo}>
-                                        {tipo}
+                                    <MenuItem key={tipo.value} value={tipo.value}>
+                                        {tipo.label}
                                     </MenuItem>
                                 ))}
                             </TextField>
                         </Grid>
+
+                        {/* Mostrar selector de examen solo si es tipo REPOSICION */}
+                        {formData.tipo === 'REPOSICION' && (
+                            <Grid item xs={12}>
+                                <Alert severity="info" sx={{ mb: 1 }}>
+                                    <AlertTitle>🔄 Reposición de Examen</AlertTitle>
+                                    <Typography variant="body2">
+                                        Seleccione el examen que será reemplazado por esta reposición.
+                                        Los campos periodo, parcial, nota máxima y sección se heredarán automáticamente.
+                                    </Typography>
+                                </Alert>
+                                <TextField
+                                    fullWidth
+                                    select
+                                    label="Examen a Reponer"
+                                    name="evaluacionReemplazadaId"
+                                    value={formData.evaluacionReemplazadaId}
+                                    onChange={handleChange}
+                                    error={!!errors.evaluacionReemplazadaId}
+                                    helperText={
+                                        errors.evaluacionReemplazadaId ||
+                                        (loadingExamenes ? "Cargando exámenes..." :
+                                         !formData.claseId ? "Primero seleccione una clase" :
+                                         examenesDisponibles.length === 0 ? "No hay exámenes disponibles para esta clase" :
+                                         "Seleccione el examen que esta reposición va a reemplazar")
+                                    }
+                                    required
+                                    disabled={!formData.claseId || loadingExamenes}
+                                >
+                                    {examenesDisponibles.map((examen) => (
+                                        <MenuItem key={examen.id} value={examen.id}>
+                                            {examen.titulo} - {examen.parcial?.nombre} ({examen.notaMaxima} pts)
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
+                            </Grid>
+                        )}
 
                         <Grid item xs={12} sm={6}>
                             <TextField
@@ -373,8 +610,16 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
                                 value={formData.notaMaxima}
                                 onChange={handleChange}
                                 error={!!errors.notaMaxima}
-                                helperText={errors.notaMaxima}
+                                helperText={
+                                    formData.tipo === 'REPOSICION' && formData.evaluacionReemplazadaId
+                                        ? "Heredado del examen seleccionado"
+                                        : errors.notaMaxima
+                                }
                                 required
+                                disabled={formData.tipo === 'REPOSICION' && formData.evaluacionReemplazadaId}
+                                InputProps={{
+                                    readOnly: formData.tipo === 'REPOSICION' && formData.evaluacionReemplazadaId,
+                                }}
                             />
                         </Grid>
 
@@ -387,8 +632,13 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
                                 value={formData.periodoId}
                                 onChange={handleChange}
                                 error={!!errors.periodoId}
-                                helperText={errors.periodoId || "Primero seleccione el periodo"}
+                                helperText={
+                                    formData.tipo === 'REPOSICION' && formData.evaluacionReemplazadaId
+                                        ? "Heredado del examen seleccionado"
+                                        : errors.periodoId || "Primero seleccione el periodo"
+                                }
                                 required
+                                disabled={formData.tipo === 'REPOSICION' && formData.evaluacionReemplazadaId}
                             >
                                 {Array.isArray(periodos) && periodos.map((periodo) => (
                                     <MenuItem key={periodo.id} value={periodo.id}>
@@ -407,9 +657,16 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
                                 value={formData.parcialId}
                                 onChange={handleChange}
                                 error={!!errors.parcialId}
-                                helperText={errors.parcialId || (formData.periodoId ? "Seleccione un parcial" : "Primero seleccione un periodo")}
+                                helperText={
+                                    formData.tipo === 'REPOSICION' && formData.evaluacionReemplazadaId
+                                        ? "Heredado del examen seleccionado"
+                                        : errors.parcialId || (formData.periodoId ? "Seleccione un parcial" : "Primero seleccione un periodo")
+                                }
                                 required
-                                disabled={!formData.periodoId}
+                                disabled={
+                                    !formData.periodoId || 
+                                    (formData.tipo === 'REPOSICION' && formData.evaluacionReemplazadaId)
+                                }
                             >
                                 {Array.isArray(parcialesFiltrados) && parcialesFiltrados.map((parcial) => (
                                     <MenuItem key={parcial.id} value={parcial.id}>
@@ -440,13 +697,20 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
                             <TextField
                                 fullWidth
                                 select
-                                label="Clase (Opcional)"
+                                label={formData.tipo === 'REPOSICION' ? 'Clase' : 'Clase (Opcional)'}
                                 name="claseId"
                                 value={formData.claseId}
                                 onChange={handleChange}
-                                helperText="Seleccione una clase si desea asignar la evaluación"
+                                error={!!errors.claseId}
+                                helperText={
+                                    errors.claseId ||
+                                    (formData.tipo === 'REPOSICION' 
+                                        ? "Obligatorio para reposiciones" 
+                                        : "Seleccione una clase si desea asignar la evaluación")
+                                }
+                                required={formData.tipo === 'REPOSICION'}
                             >
-                                <MenuItem value="">Ninguna</MenuItem>
+                                {formData.tipo !== 'REPOSICION' && <MenuItem value="">Ninguna</MenuItem>}
                                 {Array.isArray(clases) && clases.map((clase) => (
                                     <MenuItem key={clase.id} value={clase.id}>
                                         {clase.codigo} - {clase.nombre}
@@ -464,13 +728,19 @@ const EvaluacionDialog = ({ open, onClose, onSave, evaluacion = null, parciales 
                                 value={formData.seccionId}
                                 onChange={handleChange}
                                 helperText={
-                                    loadingSecciones 
-                                        ? "Cargando secciones..." 
-                                        : formData.claseId 
-                                            ? `${seccionesFiltradas.length} sección(es) disponible(s)` 
-                                            : "Primero seleccione una clase"
+                                    formData.tipo === 'REPOSICION' && formData.evaluacionReemplazadaId
+                                        ? "Heredado del examen seleccionado"
+                                        : loadingSecciones 
+                                            ? "Cargando secciones..." 
+                                            : formData.claseId 
+                                                ? `${seccionesFiltradas.length} sección(es) disponible(s)` 
+                                                : "Primero seleccione una clase"
                                 }
-                                disabled={!formData.claseId || loadingSecciones}
+                                disabled={
+                                    !formData.claseId || 
+                                    loadingSecciones ||
+                                    (formData.tipo === 'REPOSICION' && formData.evaluacionReemplazadaId)
+                                }
                             >
                                 <MenuItem value="">Ninguna</MenuItem>
                                 {Array.isArray(seccionesFiltradas) && seccionesFiltradas.map((seccion) => (

@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
     // Evaluaciones
     EVALUACIONES: {
         LISTAR: `${API_BASE_URL}/api/evaluaciones/listar`,
+        LISTAR_EXAMENES: `${API_BASE_URL}/api/evaluaciones/listar-examenes`,
         GUARDAR: `${API_BASE_URL}/api/evaluaciones/guardar`,
         EDITAR: `${API_BASE_URL}/api/evaluaciones/editar`,
         ELIMINAR: `${API_BASE_URL}/api/evaluaciones/eliminar`,
@@ -161,12 +162,12 @@ export const API_ENDPOINTS = {
 
     // Estructura de Calificación
     ESTRUCTURA_CALIFICACION: {
-        LISTAR: '/api/estructura-calificacion/listar',
-        OBTENER: '/api/estructura-calificacion/obtener',
-        POR_PARCIAL_CLASE: '/api/estructura-calificacion/por-parcial-clase',
-        GUARDAR: '/api/estructura-calificacion/guardar',
-        EDITAR: '/api/estructura-calificacion/editar',
-        ELIMINAR: '/api/estructura-calificacion/eliminar',
+        LISTAR: `${API_BASE_URL}/api/estructura-calificacion/listar`,
+        OBTENER: `${API_BASE_URL}/api/estructura-calificacion/obtener`,
+        POR_PARCIAL_CLASE: `${API_BASE_URL}/api/estructura-calificacion/por-parcial-clase`,
+        GUARDAR: `${API_BASE_URL}/api/estructura-calificacion/guardar`,
+        EDITAR: `${API_BASE_URL}/api/estructura-calificacion/editar`,
+        ELIMINAR: `${API_BASE_URL}/api/estructura-calificacion/eliminar`,
     },
 }
 
