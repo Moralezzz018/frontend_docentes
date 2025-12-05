@@ -489,7 +489,7 @@ const ConfiguracionEstructuraDialog = ({
 
                         {/* Configuraciones adicionales */}
                         <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: 'rgba(33, 150, 243, 0.08)' }}>
-                            <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ color: '#ffffff' }}>
+                            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                                 ⚙️ Configuración de Notas
                             </Typography>
                             <Grid container spacing={2}>
@@ -503,11 +503,7 @@ const ConfiguracionEstructuraDialog = ({
                                         inputProps={{ min: 0, max: 100, step: 0.01 }}
                                         helperText="Normalmente 100 puntos"
                                         sx={{ 
-                                            bgcolor: 'rgba(33, 150, 243, 0.08)',
-                                            '& .MuiFormHelperText-root': {
-                                                color: '#ffffff',
-                                                fontWeight: 600
-                                            }
+                                            bgcolor: 'background.paper'
                                         }}
                                     />
                                 </Grid>
@@ -521,17 +517,13 @@ const ConfiguracionEstructuraDialog = ({
                                         inputProps={{ min: 0, max: 100, step: 0.01 }}
                                         helperText="Con cuánto se pasa la clase"
                                         sx={{ 
-                                            bgcolor: 'rgba(33, 150, 243, 0.08)',
-                                            '& .MuiFormHelperText-root': {
-                                                color: '#ffffff',
-                                                fontWeight: 600
-                                            }
+                                            bgcolor: 'background.paper'
                                         }}
                                     />
                                 </Grid>
                             </Grid>
                             <Alert severity="info" sx={{ mt: 2 }}>
-                                <Typography variant="body2" sx={{ color: '#ffffff', fontWeight: 500 }}>
+                                <Typography variant="body2">
                                     <strong>Nota de Aprobación:</strong> Define el puntaje mínimo que un estudiante debe alcanzar para aprobar el parcial. 
                                     Por ejemplo: Si configuras 70, el estudiante debe obtener al menos 70 puntos de {estructura.notaMaximaParcial} para aprobar.
                                 </Typography>
