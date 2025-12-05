@@ -11,10 +11,16 @@ import {
     InputAdornment,
     MenuItem,
     Link,
+    Card,
+    CardContent,
+    Divider,
 } from '@mui/material'
 import PersonIcon from '@mui/icons-material/Person'
 import EmailIcon from '@mui/icons-material/Email'
 import WorkIcon from '@mui/icons-material/Work'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import MailOutlineIcon from '@mui/icons-material/MailOutline'
+import VpnKeyIcon from '@mui/icons-material/VpnKey'
 import { docentesService } from '@servicios/docentesService'
 
 const ESTADOS = [
@@ -32,6 +38,7 @@ const Registro = () => {
     const [error, setError] = useState('')
     const [success, setSuccess] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [correoEnviado, setCorreoEnviado] = useState('')
     const navigate = useNavigate()
 
     const handleChange = (e) => {
@@ -76,11 +83,12 @@ const Registro = () => {
         try {
             await docentesService.guardar(formData)
             setSuccess(true)
+            setCorreoEnviado(formData.correo)
             
-            // Redirigir al login después de 3 segundos
+            // Redirigir al login después de 8 segundos (más tiempo para leer el mensaje)
             setTimeout(() => {
                 navigate('/login')
-            }, 3000)
+            }, 8000)
         } catch (err) {
             console.error('Error al crear docente:', err)
             if (err.response?.data?.error) {
@@ -132,13 +140,89 @@ const Registro = () => {
                     )}
 
                     {success && (
-                        <Alert severity="success" sx={{ mb: 2 }}>
-                            ¡Docente registrado exitosamente! Se han enviado las credenciales por correo. 
-                            Redirigiendo al inicio de sesión...
-                        </Alert>
+                        <Card 
+                            sx={{ 
+                                mb: 3, 
+                                bgcolor: '#e8f5e9',
+                                border: '2px solid #4caf50',
+                                boxShadow: 3
+                            }}
+                        >
+                            <CardContent>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                    <CheckCircleIcon sx={{ fontSize: 40, color: '#4caf50', mr: 2 }} />
+                                    <Typography variant="h6" component="div" sx={{ color: '#2e7d32', fontWeight: 600 }}>
+                                        ¡Registro Exitoso!
+                                    </Typography>
+                                </Box>
+                                
+                                <Divider sx={{ my: 2 }} />
+                                
+                                <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+                                    <MailOutlineIcon sx={{ color: '#1976d2', mr: 2, mt: 0.5 }} />
+                                    <Box>
+                                        <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5, color: '#1565c0' }}>
+                                            Credenciales Enviadas
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ color: '#424242', mb: 1 }}>
+                                            Hemos enviado tus credenciales de acceso a:
+                                        </Typography>
+                                        <Typography 
+                                            variant="body2" 
+                                            sx={{ 
+                                                mt: 1,
+                                                p: 1.5, 
+                                                bgcolor: '#f5f5f5', 
+                                                borderRadius: 1,
+                                                fontFamily: 'monospace',
+                                                fontSize: '0.95rem',
+                                                color: '#0d47a1',
+                                                fontWeight: 600,
+                                                border: '1px solid #1976d2'
+                                            }}
+                                        >
+                                            {correoEnviado}
+                                        </Typography>
+                                    </Box>
+                                </Box>
+
+                                <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+                                    <VpnKeyIcon sx={{ color: '#f57c00', mr: 2, mt: 0.5 }} />
+                                    <Box>
+                                        <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5, color: '#e65100' }}>
+                                            ¿Qué hacer ahora?
+                                        </Typography>
+                                        <Typography variant="body2" component="div" sx={{ color: '#424242' }}>
+                                            <ol style={{ margin: 0, paddingLeft: '20px' }}>
+                                                <li>Revisa tu bandeja de entrada y correo no deseado</li>
+                                                <li>Busca el correo con tus credenciales (usuario y contraseña temporal)</li>
+                                                <li>Inicia sesión con el usuario o tu correo electrónico</li>
+                                                <li>Cambia tu contraseña temporal por una nueva</li>
+                                            </ol>
+                                        </Typography>
+                                    </Box>
+                                </Box>
+
+                                <Alert severity="warning" sx={{ mt: 2 }}>
+                                    <Typography variant="body2">
+                                        <strong>Importante:</strong> Si no recibes el correo en los próximos minutos, 
+                                        verifica tu carpeta de spam o contacta al administrador.
+                                    </Typography>
+                                </Alert>
+
+                                <Typography 
+                                    variant="caption" 
+                                    color="text.secondary" 
+                                    sx={{ display: 'block', textAlign: 'center', mt: 2 }}
+                                >
+                                    Redirigiendo al inicio de sesión en unos segundos...
+                                </Typography>
+                            </CardContent>
+                        </Card>
                     )}
 
-                    <form onSubmit={handleSubmit}>
+                    {!success && (
+                        <form onSubmit={handleSubmit}>
                         <TextField
                             fullWidth
                             label="Nombre Completo"
@@ -244,6 +328,19 @@ const Registro = () => {
                             </Link>
                         </Box>
                     </form>
+                    )}
+
+                    {success && (
+                        <Button
+                            fullWidth
+                            variant="outlined"
+                            size="large"
+                            onClick={() => navigate('/login')}
+                            sx={{ mt: 2 }}
+                        >
+                            Ir a Iniciar Sesión Ahora
+                        </Button>
+                    )}
                 </Paper>
             </Box>
         </Container>

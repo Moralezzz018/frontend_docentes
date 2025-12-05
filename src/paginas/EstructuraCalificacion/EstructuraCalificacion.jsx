@@ -285,7 +285,7 @@ const EstructuraCalificacion = () => {
             {/* Tabla o Cards según el rol */}
             {estructuras.length === 0 ? (
                 <Paper sx={{ p: 4, textAlign: 'center' }}>
-                    <Typography variant="body1" color="text.secondary">
+                    <Typography variant="body1" sx={{ color: '#616161' }}>
                         {esEstudiante
                             ? 'No hay estructuras de calificación configuradas para tus clases'
                             : 'No hay estructuras de calificación registradas. Crea una nueva.'}
@@ -301,13 +301,13 @@ const EstructuraCalificacion = () => {
                                     <Typography variant="h6" gutterBottom>
                                         {estructura.clase?.codigo} - {estructura.clase?.nombre}
                                     </Typography>
-                                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                                    <Typography variant="body2" sx={{ color: '#424242', fontWeight: 500 }} gutterBottom>
                                         {estructura.parcial?.nombre}
                                     </Typography>
 
                                     <Box sx={{ mt: 2 }}>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                            <Typography variant="body2">Acumulativo:</Typography>
+                                            <Typography variant="body2" sx={{ color: '#424242', fontWeight: 500 }}>Acumulativo:</Typography>
                                             <Chip
                                                 label={`${estructura.pesoAcumulativo}%`}
                                                 color={getChipColor(estructura.pesoAcumulativo)}
@@ -315,7 +315,7 @@ const EstructuraCalificacion = () => {
                                             />
                                         </Box>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                            <Typography variant="body2">Examen:</Typography>
+                                            <Typography variant="body2" sx={{ color: '#424242', fontWeight: 500 }}>Examen:</Typography>
                                             <Chip
                                                 label={`${estructura.pesoExamen}%`}
                                                 color={getChipColor(estructura.pesoExamen)}
@@ -324,7 +324,7 @@ const EstructuraCalificacion = () => {
                                         </Box>
                                         {estructura.pesoReposicion > 0 && (
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                                <Typography variant="body2">Reposición:</Typography>
+                                                <Typography variant="body2" sx={{ color: '#424242', fontWeight: 500 }}>Reposición:</Typography>
                                                 <Chip
                                                     label={`${estructura.pesoReposicion}%`}
                                                     color={getChipColor(estructura.pesoReposicion)}
@@ -344,8 +344,8 @@ const EstructuraCalificacion = () => {
                                             justifyContent: 'space-between',
                                         }}
                                     >
-                                        <Typography variant="body2">Nota Máxima:</Typography>
-                                        <Typography variant="body2" fontWeight="bold">
+                                        <Typography variant="body2" sx={{ color: '#424242', fontWeight: 500 }}>Nota Máxima:</Typography>
+                                        <Typography variant="body2" sx={{ color: '#1976d2', fontWeight: 700 }}>
                                             {estructura.notaMaximaParcial} pts
                                         </Typography>
                                     </Box>

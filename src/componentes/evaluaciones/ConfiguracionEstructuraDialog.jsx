@@ -359,7 +359,7 @@ const ConfiguracionEstructuraDialog = ({
                             )}
                         </Paper>
 
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                        <Typography variant="body2" sx={{ mb: 3, color: '#424242', fontWeight: 500 }}>
                             Defina la distribución de pesos para las calificaciones. La suma debe ser 100%.
                         </Typography>
 
@@ -488,8 +488,8 @@ const ConfiguracionEstructuraDialog = ({
                         </Paper>
 
                         {/* Configuraciones adicionales */}
-                        <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: 'info.light' }}>
-                            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                        <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: 'rgba(33, 150, 243, 0.08)' }}>
+                            <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ color: '#ffffff' }}>
                                 ⚙️ Configuración de Notas
                             </Typography>
                             <Grid container spacing={2}>
@@ -502,7 +502,13 @@ const ConfiguracionEstructuraDialog = ({
                                         onChange={handleTextFieldChange('notaMaximaParcial')}
                                         inputProps={{ min: 0, max: 100, step: 0.01 }}
                                         helperText="Normalmente 100 puntos"
-                                        sx={{ bgcolor: 'white' }}
+                                        sx={{ 
+                                            bgcolor: 'rgba(33, 150, 243, 0.08)',
+                                            '& .MuiFormHelperText-root': {
+                                                color: '#ffffff',
+                                                fontWeight: 600
+                                            }
+                                        }}
                                     />
                                 </Grid>
                                 <Grid item xs={12} md={6}>
@@ -514,12 +520,18 @@ const ConfiguracionEstructuraDialog = ({
                                         onChange={handleTextFieldChange('notaMinimaAprobacion')}
                                         inputProps={{ min: 0, max: 100, step: 0.01 }}
                                         helperText="Con cuánto se pasa la clase"
-                                        sx={{ bgcolor: 'white' }}
+                                        sx={{ 
+                                            bgcolor: 'rgba(33, 150, 243, 0.08)',
+                                            '& .MuiFormHelperText-root': {
+                                                color: '#ffffff',
+                                                fontWeight: 600
+                                            }
+                                        }}
                                     />
                                 </Grid>
                             </Grid>
                             <Alert severity="info" sx={{ mt: 2 }}>
-                                <Typography variant="body2">
+                                <Typography variant="body2" sx={{ color: '#ffffff', fontWeight: 500 }}>
                                     <strong>Nota de Aprobación:</strong> Define el puntaje mínimo que un estudiante debe alcanzar para aprobar el parcial. 
                                     Por ejemplo: Si configuras 70, el estudiante debe obtener al menos 70 puntos de {estructura.notaMaximaParcial} para aprobar.
                                 </Typography>
