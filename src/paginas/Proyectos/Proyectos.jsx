@@ -33,8 +33,12 @@ import ProyectoDialog from '@componentes/Proyectos/ProyectoDialog'
 import { proyectosService } from '@servicios/proyectosService'
 import { clasesService } from '@servicios/catalogosService'
 import { estudiantesService } from '@servicios/estudiantesService'
+import { useAuthStore } from '@almacen/authStore'
 
 const Proyectos = () => {
+  const { user, isEstudiante } = useAuthStore()
+  const esEstudiante = isEstudiante()
+  
   const [proyectos, setProyectos] = useState([])
   const [clases, setClases] = useState([])
   const [estudiantes, setEstudiantes] = useState([])
@@ -53,9 +57,10 @@ const Proyectos = () => {
     try {
       setLoading(true)
       setError(null)
-      const [proyectosData, clasesData] = await Promise.allSettled([
+      const [proyectosData, clasesData, estudiantesData] = await Promise.allSettled([
         proyectosService.listar(),
         clasesService.listar(),
+        estudiantesService.listar(),
       ])
 
       if (proyectosData.status === 'fulfilled' && Array.isArray(proyectosData.value)) {
@@ -65,20 +70,40 @@ const Proyectos = () => {
         setProyectos([])
       }
 
+      if (estudiantesData.status === 'fulfilled' && Array.isArray(estudiantesData.value)) {
+        setEstudiantes(estudiantesData.value)
+      } else {
+        console.error('Error cargando estudiantes:', estudiantesData.reason)
+        setEstudiantes([])
+      }
+
       if (clasesData.status === 'fulfilled' && Array.isArray(clasesData.value)) {
-        setClases(clasesData.value)
+        // Si es estudiante, filtrar solo las clases en las que está inscrito
+        if (esEstudiante && user?.estudianteId && estudiantesData.status === 'fulfilled') {
+          const estudianteActual = estudiantesData.value?.find(
+            est => est.id === user.estudianteId
+          )
+          
+          if (estudianteActual?.inscripciones && Array.isArray(estudianteActual.inscripciones)) {
+            const clasesInscritasIds = estudianteActual.inscripciones
+              .map(insc => insc.clase?.id)
+              .filter(id => id !== undefined && id !== null)
+            
+            const clasesInscritas = clasesData.value.filter(
+              clase => clasesInscritasIds.includes(clase.id)
+            )
+            
+            setClases(clasesInscritas)
+          } else {
+            setClases([])
+          }
+        } else {
+          // Si es docente o admin, mostrar todas las clases
+          setClases(clasesData.value)
+        }
       } else {
         console.error('Error cargando clases:', clasesData.reason)
         setClases([])
-      }
-
-      // Cargar estudiantes (para asignarlos a proyectos)
-      try {
-        const est = await estudiantesService.listar()
-        setEstudiantes(Array.isArray(est) ? est : [])
-      } catch (e) {
-        console.error('Error cargando estudiantes:', e)
-        setEstudiantes([])
       }
     } catch (err) {
       console.error('Error:', err)
@@ -177,7 +202,9 @@ const Proyectos = () => {
         <Typography variant="h4" component="h1">Proyectos</Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button variant="outlined" startIcon={<RefreshIcon />} onClick={cargarDatos}>Actualizar</Button>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()}>Nuevo Proyecto</Button>
+          {!esEstudiante && (
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()}>Nuevo Proyecto</Button>
+          )}
         </Box>
       </Box>
 
@@ -190,7 +217,7 @@ const Proyectos = () => {
               <TableCell>Fecha entrega</TableCell>
               <TableCell>Estado</TableCell>
               <TableCell>Detalles</TableCell>
-              <TableCell align="center">Acciones</TableCell>
+              {!esEstudiante && <TableCell align="center">Acciones</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -207,19 +234,21 @@ const Proyectos = () => {
                         {expandedId === p.id ? <CloseOutlinedIcon /> : <InfoOutlinedIcon />}
                       </IconButton>
                     </TableCell>
-                    <TableCell align="center">
-                      <IconButton size="small" color="primary" onClick={() => handleOpenDialog(p)}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton size="small" color="error" onClick={() => handleDeleteClick(p)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
+                    {!esEstudiante && (
+                      <TableCell align="center">
+                        <IconButton size="small" color="primary" onClick={() => handleOpenDialog(p)}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton size="small" color="error" onClick={() => handleDeleteClick(p)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    )}
                   </TableRow>
 
                   {expandedId === p.id && (
                     <TableRow>
-                      <TableCell colSpan={6}>
+                      <TableCell colSpan={esEstudiante ? 5 : 6}>
                         <strong>Clase:</strong>{' '}
                         {(() => {
                           const clase = clases.find((c) => c.id === p.claseId)
@@ -247,7 +276,7 @@ const Proyectos = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} align="center">No hay proyectos registrados</TableCell>
+                <TableCell colSpan={esEstudiante ? 5 : 6} align="center">No hay proyectos registrados</TableCell>
               </TableRow>
             )}
           </TableBody>

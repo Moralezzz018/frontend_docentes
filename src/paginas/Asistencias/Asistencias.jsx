@@ -28,6 +28,7 @@ import LoadingSpinner from '@componentes/common/LoadingSpinner'
 import ErrorMessage from '@componentes/common/ErrorMessage'
 import ConfirmDialog from '@componentes/common/ConfirmDialog'
 import AsistenciaDialog from '@componentes/asistencias/AsistenciaDialog'
+import AsistenciaMultipleDialog from '@componentes/asistencias/AsistenciaMultipleDialog'
 import { asistenciasService } from '@servicios/asistenciasService'
 import { periodosService, parcialesService, clasesService } from '@servicios/catalogosService'
 import { useAuthStore } from '@almacen/authStore'
@@ -54,6 +55,7 @@ const Asistencias = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [dialogOpen, setDialogOpen] = useState(false)
+    const [multipleDialogOpen, setMultipleDialogOpen] = useState(false)
     const [confirmOpen, setConfirmOpen] = useState(false)
     const [selectedAsistencia, setSelectedAsistencia] = useState(null)
     const [asistenciaToDelete, setAsistenciaToDelete] = useState(null)
@@ -198,6 +200,37 @@ const Asistencias = () => {
         setDialogOpen(false)
     }
 
+    const handleOpenMultipleDialog = () => {
+        setMultipleDialogOpen(true)
+    }
+
+    const handleCloseMultipleDialog = () => {
+        setMultipleDialogOpen(false)
+    }
+
+    const handleSaveMultiple = async (data) => {
+        try {
+            const result = await asistenciasService.guardarMultiple(data)
+            const mensaje = result.mensaje || 'Asistencias registradas exitosamente'
+            const cantidad = result.cantidad || result.creadas || 0
+            setSnackbar({ 
+                open: true, 
+                message: `${mensaje}. Total: ${cantidad} estudiantes marcados como PRESENTE`, 
+                severity: 'success' 
+            })
+            handleCloseMultipleDialog()
+            cargarDatos()
+        } catch (err) {
+            console.error('Error al guardar asistencias múltiples:', err.response?.data)
+            const errorMsg = err.response?.data?.mensaje || err.response?.data?.error || 'Error al guardar las asistencias'
+            setSnackbar({ 
+                open: true, 
+                message: errorMsg, 
+                severity: 'error' 
+            })
+        }
+    }
+
     const handleSave = async (data) => {
         try {
             if (selectedAsistencia) {
@@ -211,7 +244,20 @@ const Asistencias = () => {
             cargarDatos()
         } catch (err) {
             console.error('Error al guardar:', err.response?.data)
-            const errorMsg = err.response?.data?.mensaje || err.response?.data?.error || 'Error al guardar la asistencia'
+            console.error('Datos enviados:', data)
+            
+            let errorMsg = 'Error al guardar la asistencia'
+            
+            // Mostrar errores de validación detallados
+            if (err.response?.data?.errores && Array.isArray(err.response.data.errores)) {
+                const erroresDetallados = err.response.data.errores.map(e => e.msg || e.message).join(', ')
+                errorMsg = `Errores de validación: ${erroresDetallados}`
+            } else if (err.response?.data?.mensaje) {
+                errorMsg = err.response.data.mensaje
+            } else if (err.response?.data?.error) {
+                errorMsg = err.response.data.error
+            }
+            
             setSnackbar({ 
                 open: true, 
                 message: errorMsg, 
@@ -298,6 +344,16 @@ const Asistencias = () => {
                     >
                         Actualizar
                     </Button>
+                    {!esEstudiante && (
+                        <Button
+                            variant="contained"
+                            color="success"
+                            startIcon={<GroupAddIcon />}
+                            onClick={handleOpenMultipleDialog}
+                        >
+                            Asistencia Múltiple
+                        </Button>
+                    )}
                     <Button
                         variant="contained"
                         startIcon={<AddIcon />}
@@ -408,7 +464,7 @@ const Asistencias = () => {
                             <TableCell>Fecha</TableCell>
                             <TableCell>Estado</TableCell>
                             <TableCell>Descripción</TableCell>
-                            <TableCell align="center">Acciones</TableCell>
+                            {/*<TableCell align="center">Acciones</TableCell>*/}
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -475,6 +531,15 @@ const Asistencias = () => {
                 clases={clases}
                 periodos={periodos}
                 parciales={parciales}
+            />
+
+            {/* Dialog para asistencia múltiple */}
+            <AsistenciaMultipleDialog
+                open={multipleDialogOpen}
+                onClose={handleCloseMultipleDialog}
+                onSave={handleSaveMultiple}
+                clases={clases}
+                estudiantes={estudiantes}
             />
 
             {/* Dialog de confirmación para eliminar */}

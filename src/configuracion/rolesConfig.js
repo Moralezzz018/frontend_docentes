@@ -57,8 +57,9 @@ export const MODULOS_POR_ROL = {
         'dashboard',
         'evaluaciones',
         'asistencias',
+        'proyectos',
         'estructura-calificacion'
-        // Solo evaluaciones, asistencias y estructura de calificación
+        // Solo evaluaciones, asistencias, proyectos y estructura de calificación
     ]
 }
 

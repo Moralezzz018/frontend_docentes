@@ -44,20 +44,35 @@ const AsistenciaDialog = ({
     const [errors, setErrors] = useState({})
     const [imagenExcusa, setImagenExcusa] = useState(null)
     const [imagenExcusaPreview, setImagenExcusaPreview] = useState(null)
+    const [periodoCalculado, setPeriodoCalculado] = useState(null)
+    const [parcialCalculado, setParcialCalculado] = useState(null)
     
     // Actualizar formData cuando cambie asistencia o se abra el diálogo
     useEffect(() => {
         if (open) {
+            // Obtener fecha y hora actual del sistema en timezone local
+            const now = new Date()
+            // Ajustar al timezone local para evitar desfase de fechas
+            const offsetMs = now.getTimezoneOffset() * 60000
+            const fechaLocal = new Date(now.getTime() - offsetMs)
+            const fechaActual = fechaLocal.toISOString().substring(0, 16)
+            
             if (asistencia) {
                 setFormData({
                     estudianteId: asistencia.estudianteId || '',
                     claseId: asistencia.claseId || '',
                     periodoId: asistencia.periodoId || '',
                     parcialId: asistencia.parcialId || '',
-                    fecha: asistencia.fecha ? new Date(asistencia.fecha).toISOString().substring(0, 16) : '',
+                    fecha: asistencia.fecha ? new Date(asistencia.fecha).toISOString().substring(0, 16) : fechaActual,
                     estado: asistencia.estado || 'PRESENTE',
                     descripcion: asistencia.descripcion || '',
                 })
+                // Mostrar periodo y parcial de la asistencia existente
+                const periodo = periodos.find(p => p.id === asistencia.periodoId)
+                const parcial = parciales.find(p => p.id === asistencia.parcialId)
+                setPeriodoCalculado(periodo?.nombre || 'No especificado')
+                setParcialCalculado(parcial?.nombre || 'No especificado')
+                
                 // Si tiene imágenes de excusa, mostrar la primera
                 if (asistencia.imagenes && asistencia.imagenes.length > 0) {
                     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -68,22 +83,24 @@ const AsistenciaDialog = ({
                     setImagenExcusaPreview(null)
                 }
             } else {
-                // Si es nuevo registro
+                // Si es nuevo registro, usar fecha actual automáticamente
                 setFormData({
                     estudianteId: esEstudiante && user?.estudianteId ? user.estudianteId : '',
                     claseId: '',
                     periodoId: '',
                     parcialId: '',
-                    fecha: '',
+                    fecha: fechaActual,
                     estado: 'PRESENTE',
                     descripcion: '',
                 })
+                setPeriodoCalculado('Se calculará automáticamente')
+                setParcialCalculado('Se calculará automáticamente')
                 setImagenExcusa(null)
                 setImagenExcusaPreview(null)
             }
             setErrors({})
         }
-    }, [open, asistencia, esEstudiante, user])
+    }, [open, asistencia, esEstudiante, user, periodos, parciales])
 
     // Filtrar parciales según el periodo seleccionado
     const parcialesFiltrados = formData.periodoId 
@@ -188,13 +205,7 @@ const AsistenciaDialog = ({
             newErrors.claseId = 'Seleccione una clase'
         }
 
-        if (!formData.periodoId) {
-            newErrors.periodoId = 'Seleccione un periodo'
-        }
-
-        if (!formData.parcialId) {
-            newErrors.parcialId = 'Seleccione un parcial'
-        }
+        // Periodo y parcial ya NO se validan porque se calculan automáticamente en el backend
 
         if (!formData.fecha) {
             newErrors.fecha = 'La fecha es obligatoria'
@@ -218,11 +229,10 @@ const AsistenciaDialog = ({
             const data = {
                 estudianteId: parseInt(formData.estudianteId),
                 claseId: parseInt(formData.claseId),
-                periodoId: parseInt(formData.periodoId),
-                parcialId: parseInt(formData.parcialId),
+                // NO enviar periodoId ni parcialId - se calculan en el backend
                 fecha: new Date(formData.fecha).toISOString(),
                 estado: formData.estado,
-                descripcion: formData.descripcion || null,
+                descripcion: formData.descripcion || '', // Descripción opcional
             }
             
             // Si hay imagen de excusa, agregarla
@@ -298,42 +308,27 @@ const AsistenciaDialog = ({
                     <Grid item xs={12} sm={6}>
                         <TextField
                             fullWidth
-                            select
                             label="Periodo"
-                            name="periodoId"
-                            value={formData.periodoId}
-                            onChange={handleChange}
-                            error={!!errors.periodoId}
-                            helperText={errors.periodoId || "Primero seleccione el periodo"}
-                            required
-                        >
-                            {Array.isArray(periodos) && periodos.map((periodo) => (
-                                <MenuItem key={periodo.id} value={periodo.id}>
-                                    {periodo.nombre}
-                                </MenuItem>
-                            ))}
-                        </TextField>
+                            value={periodoCalculado || 'Calculado automáticamente'}
+                            disabled
+                            helperText="Se calcula automáticamente según la fecha"
+                            InputProps={{
+                                readOnly: true,
+                            }}
+                        />
                     </Grid>
 
                     <Grid item xs={12} sm={6}>
                         <TextField
                             fullWidth
-                            select
                             label="Parcial"
-                            name="parcialId"
-                            value={formData.parcialId}
-                            onChange={handleChange}
-                            error={!!errors.parcialId}
-                            helperText={errors.parcialId || (formData.periodoId ? "Seleccione un parcial" : "Primero seleccione un periodo")}
-                            required
-                            disabled={!formData.periodoId}
-                        >
-                            {Array.isArray(parcialesFiltrados) && parcialesFiltrados.map((parcial) => (
-                                <MenuItem key={parcial.id} value={parcial.id}>
-                                    {parcial.nombre}
-                                </MenuItem>
-                            ))}
-                        </TextField>
+                            value={parcialCalculado || 'Calculado automáticamente'}
+                            disabled
+                            helperText="Se calcula automáticamente según la fecha"
+                            InputProps={{
+                                readOnly: true,
+                            }}
+                        />
                     </Grid>
 
                     <Grid item xs={12} sm={6}>
@@ -345,9 +340,10 @@ const AsistenciaDialog = ({
                             value={formData.fecha}
                             onChange={handleChange}
                             error={!!errors.fecha}
-                            helperText={errors.fecha}
+                            helperText={errors.fecha || "Fecha y hora automática del sistema"}
                             InputLabelProps={{ shrink: true }}
                             required
+                            disabled={!!asistencia}
                         />
                     </Grid>
 

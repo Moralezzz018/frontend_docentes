@@ -5,19 +5,36 @@ export const dashboardService = {
     // Obtener estadísticas del dashboard
     obtenerEstadisticas: async () => {
         try {
-            const [evaluaciones, estudiantes, asistencias, clases, aulas, usuarios] = await Promise.all([
+            // Cargar datos básicos disponibles para todos
+            const [evaluaciones, estudiantes, asistencias, clases, proyectos] = await Promise.all([
                 apiClient.get(API_ENDPOINTS.EVALUACIONES.LISTAR).catch(() => ({ data: [] })),
                 apiClient.get(API_ENDPOINTS.ESTUDIANTES.LISTAR).catch(() => ({ data: [] })),
                 apiClient.get(API_ENDPOINTS.ASISTENCIAS.LISTAR).catch(() => ({ data: [] })),
                 apiClient.get(API_ENDPOINTS.CLASES.LISTAR).catch(() => ({ data: [] })),
-                apiClient.get(API_ENDPOINTS.AULAS.LISTAR).catch(() => ({ data: [] })),
-                apiClient.get(API_ENDPOINTS.USUARIOS.LISTAR).catch(() => ({ data: [] })),
+                apiClient.get(API_ENDPOINTS.PROYECTOS.LISTAR).catch(() => ({ data: [] })),
             ])
+
+            // Intentar cargar datos adicionales (solo para admin/docente)
+            let aulas = { data: [] }
+            let usuarios = { data: [] }
+            
+            try {
+                aulas = await apiClient.get(API_ENDPOINTS.AULAS.LISTAR)
+            } catch (e) {
+                console.log('Sin acceso a aulas (normal para estudiantes)')
+            }
+            
+            try {
+                usuarios = await apiClient.get(API_ENDPOINTS.USUARIOS.LISTAR)
+            } catch (e) {
+                console.log('Sin acceso a usuarios (normal para estudiantes)')
+            }
 
             // Procesar datos
             const totalEvaluaciones = Array.isArray(evaluaciones.data) ? evaluaciones.data.length : 0
             const totalEstudiantes = Array.isArray(estudiantes.data) ? estudiantes.data.length : 0
             const totalClases = Array.isArray(clases.data) ? clases.data.length : 0
+            const totalProyectos = Array.isArray(proyectos.data) ? proyectos.data.length : 0
             const totalAulas = Array.isArray(aulas.data) ? aulas.data.length : 0
             const totalUsuarios = Array.isArray(usuarios.data) ? usuarios.data.length : 0
 
@@ -52,6 +69,7 @@ export const dashboardService = {
                 estudiantesActivos,
                 totalClases,
                 clasesActivas,
+                totalProyectos,
                 totalAulas,
                 totalUsuarios,
                 asistenciaHoy: {

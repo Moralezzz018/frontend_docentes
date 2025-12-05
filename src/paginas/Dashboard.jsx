@@ -8,6 +8,7 @@ import SchoolIcon from '@mui/icons-material/School'
 import ClassIcon from '@mui/icons-material/Class'
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom'
 import PersonIcon from '@mui/icons-material/Person'
+import FolderIcon from '@mui/icons-material/Folder'
 import { dashboardService } from '@servicios/dashboardService'
 import { useAuthStore } from '@almacen/authStore'
 import ErrorMessage from '@componentes/common/ErrorMessage'
@@ -162,6 +163,21 @@ const Dashboard = () => {
               icon={<ClassIcon fontSize="large" />}
               color="warning"
               onClick={() => navigate('/clases')}
+            />
+          )}
+        </Grid>
+
+        {/* Proyectos - Todos los roles */}
+        <Grid item xs={12} sm={6} md={3}>
+          {loading ? (
+            <Skeleton variant="rectangular" height={120} />
+          ) : (
+            <StatCard
+              title="Proyectos"
+              value={estadisticas?.totalProyectos || 0}
+              icon={<FolderIcon fontSize="large" />}
+              color="secondary"
+              onClick={() => navigate('/proyectos')}
             />
           )}
         </Grid>
