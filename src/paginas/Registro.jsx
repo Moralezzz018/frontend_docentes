@@ -17,23 +17,15 @@ import {
 } from '@mui/material'
 import PersonIcon from '@mui/icons-material/Person'
 import EmailIcon from '@mui/icons-material/Email'
-import WorkIcon from '@mui/icons-material/Work'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import MailOutlineIcon from '@mui/icons-material/MailOutline'
 import VpnKeyIcon from '@mui/icons-material/VpnKey'
 import { docentesService } from '@servicios/docentesService'
 
-const ESTADOS = [
-    { value: 'ACTIVO', label: 'Activo' },
-    { value: 'INACTIVO', label: 'Inactivo' },
-]
-
 const Registro = () => {
     const [formData, setFormData] = useState({
         nombre: '',
         correo: '',
-        especialidad: '',
-        estado: 'ACTIVO',
     })
     const [error, setError] = useState('')
     const [success, setSuccess] = useState(false)
@@ -264,42 +256,6 @@ const Registro = () => {
                                 ),
                             }}
                         />
-
-                        <TextField
-                            fullWidth
-                            label="Especialidad"
-                            name="especialidad"
-                            value={formData.especialidad}
-                            onChange={handleChange}
-                            margin="dense"
-                            disabled={loading || success}
-                            helperText="Ejemplo: Matemáticas, Programación, Física (opcional)"
-                            inputProps={{ maxLength: 100 }}
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <WorkIcon color="action" />
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-
-                        <TextField
-                            fullWidth
-                            select
-                            label="Estado"
-                            name="estado"
-                            value={formData.estado}
-                            onChange={handleChange}
-                            margin="dense"
-                            disabled={loading || success}
-                        >
-                            {ESTADOS.map((option) => (
-                                <MenuItem key={option.value} value={option.value}>
-                                    {option.label}
-                                </MenuItem>
-                            ))}
-                        </TextField>
 
                         <Button
                             type="submit"

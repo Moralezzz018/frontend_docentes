@@ -169,6 +169,12 @@ export const API_ENDPOINTS = {
         EDITAR: `${API_BASE_URL}/api/estructura-calificacion/editar`,
         ELIMINAR: `${API_BASE_URL}/api/estructura-calificacion/eliminar`,
     },
+
+    // Notas
+    NOTAS: {
+        OBTENER: `${API_BASE_URL}/api/notas/obtener`,
+        MIS_NOTAS: `${API_BASE_URL}/api/notas/mis-notas`,
+    },
 }
 
 // Exportar endpoints individuales para compatibilidad
@@ -190,7 +196,8 @@ export const {
     ANALISIS,
     AUDITORIA,
     DOCENTES,
-    ESTRUCTURA_CALIFICACION
+    ESTRUCTURA_CALIFICACION,
+    NOTAS
 } = API_ENDPOINTS
 
 export default API_BASE_URL

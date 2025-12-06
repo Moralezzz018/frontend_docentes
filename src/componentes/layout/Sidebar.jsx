@@ -20,6 +20,7 @@ import HistoryIcon from '@mui/icons-material/History'
 import NotificationsIcon from '@mui/icons-material/Notifications'
 import PercentIcon from '@mui/icons-material/Percent'
 import SettingsIcon from '@mui/icons-material/Settings'
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import ExpandLess from '@mui/icons-material/ExpandLess'
 import ExpandMore from '@mui/icons-material/ExpandMore'
 import SchoolIcon from '@mui/icons-material/School'
@@ -70,6 +71,7 @@ const categoriasModulos = [
         modulos: [
             { id: 'asistencias', text: 'Asistencias', icon: <CheckCircleIcon />, path: '/asistencias' },
             { id: 'evaluaciones', text: 'Evaluaciones', icon: <AssignmentIcon />, path: '/evaluaciones' },
+            { id: 'notas', text: 'Notas', icon: <MenuBookIcon />, path: '/notas' },
         ]
     },
     {

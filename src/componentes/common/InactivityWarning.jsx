@@ -27,11 +27,9 @@ export const InactivityWarning = ({ timeout = 5 * 60 * 1000, warningTime = 1 * 6
         if (!isAuthenticated) return
 
         const warningSeconds = Math.floor(warningTime / 1000)
-        console.log(`🕐 Timer iniciado. Advertencia en ${Math.floor((timeout - warningTime) / 1000)}s, cierre en ${Math.floor(timeout / 1000)}s`)
 
         // Timer para mostrar advertencia
         warningTimerRef.current = setTimeout(() => {
-            console.log('⚠️ Mostrando advertencia de inactividad')
             setShowWarning(true)
             setCountdown(warningSeconds)
 
@@ -49,7 +47,6 @@ export const InactivityWarning = ({ timeout = 5 * 60 * 1000, warningTime = 1 * 6
 
         // Timer para cerrar sesión
         timerRef.current = setTimeout(() => {
-            console.log('⏱️ Sesión cerrada por inactividad')
             logout()
         }, timeout)
     }
@@ -60,17 +57,13 @@ export const InactivityWarning = ({ timeout = 5 * 60 * 1000, warningTime = 1 * 6
 
     useEffect(() => {
         if (!isAuthenticated) {
-            console.log('❌ Usuario no autenticado, timer desactivado')
             return
         }
-
-        console.log('✅ Sistema de inactividad activado')
 
         const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click']
 
         // Función wrapper para evitar dependencias en resetTimer
         const handleActivity = () => {
-            console.log('👆 Actividad detectada, reseteando timer')
             resetTimer()
         }
 
@@ -83,7 +76,6 @@ export const InactivityWarning = ({ timeout = 5 * 60 * 1000, warningTime = 1 * 6
         })
 
         return () => {
-            console.log('🧹 Limpiando sistema de inactividad')
             if (timerRef.current) clearTimeout(timerRef.current)
             if (warningTimerRef.current) clearTimeout(warningTimerRef.current)
             if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current)

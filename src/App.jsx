@@ -23,6 +23,7 @@ import Analisis from '@paginas/Analisis/Analisis'
 import { Auditoria } from '@paginas/Auditoria'
 import Notificaciones from '@paginas/Notificaciones/Notificaciones'
 import EstructuraCalificacion from '@paginas/EstructuraCalificacion/EstructuraCalificacion'
+import Notas from '@paginas/Notas/Notas'
 
 function App() {
   return (
@@ -192,6 +193,16 @@ function App() {
           element={
             <RoleProtectedRoute moduloRequerido="estructura-calificacion">
               <EstructuraCalificacion />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Notas: ADMIN, DOCENTE, ESTUDIANTE */}
+        <Route 
+          path="notas" 
+          element={
+            <RoleProtectedRoute moduloRequerido="notas">
+              <Notas />
             </RoleProtectedRoute>
           } 
         />

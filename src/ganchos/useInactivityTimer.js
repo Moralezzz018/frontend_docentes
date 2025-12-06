@@ -19,7 +19,6 @@ export const useInactivityTimer = (timeout = 2 * 60 * 1000) => {
         // Solo iniciar el timer si el usuario está autenticado
         if (isAuthenticated) {
             timerRef.current = setTimeout(() => {
-                console.log('⏱️ Sesión cerrada por inactividad')
                 logout()
             }, timeout)
         }
