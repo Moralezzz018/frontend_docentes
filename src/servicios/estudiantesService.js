@@ -28,7 +28,9 @@ export const estudiantesService = {
         formData.append('creditos', creditos)
         formData.append('aulaId', aulaId)
 
-        const response = await apiClient.post(ESTUDIANTES.CARGAR_EXCEL, formData)
+        const response = await apiClient.post(ESTUDIANTES.CARGAR_EXCEL, formData, {
+            timeout: 1000000 // 5 minutos para procesar archivos Excel grandes
+        })
         return response.data
     },
 

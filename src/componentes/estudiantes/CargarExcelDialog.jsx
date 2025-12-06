@@ -1,6 +1,7 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Box, Typography, Alert } from '@mui/material'
 import { useState, useEffect } from 'react'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
+import ProgressIndicator from '@componentes/common/ProgressIndicator'
 
 const CargarExcelDialog = ({ open, onClose, onUpload, aulas = [] }) => {
     const [file, setFile] = useState(null)
@@ -8,6 +9,9 @@ const CargarExcelDialog = ({ open, onClose, onUpload, aulas = [] }) => {
     const [aulaId, setAulaId] = useState('')
     const [error, setError] = useState('')
     const [uploading, setUploading] = useState(false)
+    const [progress, setProgress] = useState(0)
+    const [progressMessage, setProgressMessage] = useState('')
+    const [completed, setCompleted] = useState(false)
 
     useEffect(() => {
         if (!open) {
@@ -17,6 +21,9 @@ const CargarExcelDialog = ({ open, onClose, onUpload, aulas = [] }) => {
             setAulaId('')
             setError('')
             setUploading(false)
+            setProgress(0)
+            setProgressMessage('')
+            setCompleted(false)
         }
     }, [open])
 
@@ -64,14 +71,41 @@ const CargarExcelDialog = ({ open, onClose, onUpload, aulas = [] }) => {
 
         setUploading(true)
         setError('')
+        setProgress(0)
+        setCompleted(false)
+
+        // Simular progreso mientras se procesa
+        const progressInterval = setInterval(() => {
+            setProgress(prev => {
+                if (prev >= 90) return prev
+                return prev + 10
+            })
+        }, 500)
 
         try {
+            setProgressMessage('Subiendo archivo...')
+            await new Promise(resolve => setTimeout(resolve, 500))
+            
+            setProgressMessage('Procesando datos del Excel...')
+            await new Promise(resolve => setTimeout(resolve, 300))
+            
+            setProgressMessage('Creando registros y enviando correos...')
             await onUpload(file, creditos, aulaId)
-            onClose()
+            
+            clearInterval(progressInterval)
+            setProgress(100)
+            setProgressMessage('¡Proceso completado exitosamente!')
+            setCompleted(true)
+            
+            // Cerrar después de 2 segundos
+            setTimeout(() => {
+                onClose()
+            }, 2000)
         } catch (err) {
+            clearInterval(progressInterval)
             setError(err.response?.data?.error || 'Error al cargar el archivo')
-        } finally {
             setUploading(false)
+            setProgress(0)
         }
     }
 
@@ -99,12 +133,21 @@ const CargarExcelDialog = ({ open, onClose, onUpload, aulas = [] }) => {
                     </Alert>
                 )}
 
+                <ProgressIndicator
+                    loading={uploading && !completed}
+                    progress={progress}
+                    message={progressMessage}
+                    completed={completed}
+                    variant="both"
+                />
+
                 <Button
                     variant="outlined"
                     component="label"
                     fullWidth
                     startIcon={<CloudUploadIcon />}
                     sx={{ mb: 2 }}
+                    disabled={uploading}
                 >
                     {file ? file.name : 'Seleccionar archivo Excel'}
                     <input
@@ -123,6 +166,7 @@ const CargarExcelDialog = ({ open, onClose, onUpload, aulas = [] }) => {
                     value={aulaId}
                     onChange={(e) => setAulaId(e.target.value)}
                     required
+                    disabled={uploading}
                     helperText="Aula donde se impartirá la clase"
                 >
                     <MenuItem value="">Selecciona un aula</MenuItem>
@@ -140,6 +184,7 @@ const CargarExcelDialog = ({ open, onClose, onUpload, aulas = [] }) => {
                     fullWidth
                     value={creditos}
                     onChange={(e) => setCreditos(e.target.value)}
+                    disabled={uploading}
                     helperText="Créditos de la clase (3 o 4). Se usa para asignar días automáticamente"
                 >
                     <MenuItem value="">Sin especificar</MenuItem>
