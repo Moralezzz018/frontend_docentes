@@ -17,6 +17,7 @@ import {
 } from '@mui/material'
 import GroupAddIcon from '@mui/icons-material/GroupAdd'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import ProgressIndicator from '@componentes/common/ProgressIndicator'
 
 const AsistenciaMultipleDialog = ({ 
     open, 
@@ -33,6 +34,10 @@ const AsistenciaMultipleDialog = ({
     const [periodoCalculado, setPeriodoCalculado] = useState('Se calculará automáticamente')
     const [parcialCalculado, setParcialCalculado] = useState('Se calculará automáticamente')
     const [estudiantesFiltrados, setEstudiantesFiltrados] = useState([])
+    const [loading, setLoading] = useState(false)
+    const [progress, setProgress] = useState(0)
+    const [progressMessage, setProgressMessage] = useState('')
+    const [completed, setCompleted] = useState(false)
 
     // Al abrir el diálogo, establecer fecha actual
     useEffect(() => {
@@ -105,15 +110,51 @@ const AsistenciaMultipleDialog = ({
         return Object.keys(newErrors).length === 0
     }
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (validateForm()) {
-            const data = {
-                claseId: parseInt(formData.claseId),
-                fecha: new Date(formData.fecha).toISOString(),
-                estadoPredeterminado: 'PRESENTE', // Marcar todos como PRESENTE
+            setLoading(true)
+            setProgress(0)
+            setCompleted(false)
+            setProgressMessage('Preparando datos...')
+
+            // Simular progreso
+            const progressInterval = setInterval(() => {
+                setProgress(prev => {
+                    if (prev >= 90) return prev
+                    return prev + 15
+                })
+            }, 400)
+
+            try {
+                const data = {
+                    claseId: parseInt(formData.claseId),
+                    fecha: new Date(formData.fecha).toISOString(),
+                    estadoPredeterminado: 'PRESENTE',
+                }
+                
+                setProgressMessage(`Registrando asistencia de ${estudiantesFiltrados.length} estudiantes...`)
+                await new Promise(resolve => setTimeout(resolve, 500))
+                
+                setProgressMessage('Guardando en base de datos...')
+                await onSave(data)
+                
+                clearInterval(progressInterval)
+                setProgress(100)
+                setProgressMessage('¡Asistencias registradas exitosamente!')
+                setCompleted(true)
+                
+                // Cerrar después de 2 segundos
+                setTimeout(() => {
+                    setLoading(false)
+                    setProgress(0)
+                    setCompleted(false)
+                }, 2000)
+            } catch (error) {
+                clearInterval(progressInterval)
+                setLoading(false)
+                setProgress(0)
+                setProgressMessage('')
             }
-            
-            onSave(data)
         }
     }
 
@@ -130,6 +171,14 @@ const AsistenciaMultipleDialog = ({
                     <Alert severity="info" sx={{ mb: 3 }}>
                         Esta opción marcará como <strong>PRESENTE</strong> a todos los estudiantes matriculados en la clase seleccionada.
                     </Alert>
+
+                    <ProgressIndicator
+                        loading={loading && !completed}
+                        progress={progress}
+                        message={progressMessage}
+                        completed={completed}
+                        variant="both"
+                    />
 
                     <Grid container spacing={3}>
                         <Grid item xs={12}>
@@ -278,15 +327,15 @@ const AsistenciaMultipleDialog = ({
                 </Box>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose}>Cancelar</Button>
+                <Button onClick={onClose} disabled={loading}>Cancelar</Button>
                 <Button 
                     onClick={handleSubmit} 
                     variant="contained" 
                     color="success"
                     startIcon={<GroupAddIcon />}
-                    disabled={estudiantesFiltrados.length === 0}
+                    disabled={estudiantesFiltrados.length === 0 || loading}
                 >
-                    Marcar Todos como Presente ({estudiantesFiltrados.length})
+                    {loading ? 'Registrando...' : `Marcar Todos como Presente (${estudiantesFiltrados.length})`}
                 </Button>
             </DialogActions>
         </Dialog>

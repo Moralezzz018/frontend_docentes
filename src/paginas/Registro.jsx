@@ -21,6 +21,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import MailOutlineIcon from '@mui/icons-material/MailOutline'
 import VpnKeyIcon from '@mui/icons-material/VpnKey'
 import { docentesService } from '@servicios/docentesService'
+import ProgressIndicator from '@componentes/common/ProgressIndicator'
 
 const Registro = () => {
     const [formData, setFormData] = useState({
@@ -31,6 +32,8 @@ const Registro = () => {
     const [success, setSuccess] = useState(false)
     const [loading, setLoading] = useState(false)
     const [correoEnviado, setCorreoEnviado] = useState('')
+    const [progress, setProgress] = useState(0)
+    const [progressMessage, setProgressMessage] = useState('')
     const navigate = useNavigate()
 
     const handleChange = (e) => {
@@ -71,9 +74,30 @@ const Registro = () => {
         }
 
         setLoading(true)
+        setProgress(0)
+        setProgressMessage('Validando datos...')
+
+        // Simular progreso
+        const progressInterval = setInterval(() => {
+            setProgress(prev => {
+                if (prev >= 90) return prev
+                return prev + 15
+            })
+        }, 300)
 
         try {
+            setProgressMessage('Creando cuenta de docente...')
+            await new Promise(resolve => setTimeout(resolve, 500))
+            
+            setProgressMessage('Generando credenciales de acceso...')
+            await new Promise(resolve => setTimeout(resolve, 400))
+            
+            setProgressMessage('Enviando correo con credenciales...')
             await docentesService.guardar(formData)
+            
+            clearInterval(progressInterval)
+            setProgress(100)
+            setProgressMessage('¡Registro completado exitosamente!')
             setSuccess(true)
             setCorreoEnviado(formData.correo)
             
@@ -82,6 +106,7 @@ const Registro = () => {
                 navigate('/login')
             }, 8000)
         } catch (err) {
+            clearInterval(progressInterval)
             console.error('Error al crear docente:', err)
             if (err.response?.data?.error) {
                 setError(err.response.data.error)
@@ -90,8 +115,8 @@ const Registro = () => {
             } else {
                 setError('Error al crear el docente')
             }
-        } finally {
             setLoading(false)
+            setProgress(0)
         }
     }
 
@@ -130,6 +155,14 @@ const Registro = () => {
                             {error}
                         </Alert>
                     )}
+
+                    <ProgressIndicator
+                        loading={loading && !success}
+                        progress={progress}
+                        message={progressMessage}
+                        completed={success}
+                        variant="both"
+                    />
 
                     {success && (
                         <Card 
