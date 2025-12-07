@@ -1,3 +1,10 @@
+import axios from 'axios';
+
+// Instancia de axios con baseURL desde variables de entorno
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3002'
+});
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
 
 export const API_ENDPOINTS = {
@@ -199,5 +206,8 @@ export const {
     ESTRUCTURA_CALIFICACION,
     NOTAS
 } = API_ENDPOINTS
+
+// Exportar la instancia de axios configurada
+export { api };
 
 export default API_BASE_URL
