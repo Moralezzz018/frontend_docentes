@@ -29,8 +29,8 @@ import { notasService } from '@servicios/notasService';
 import { clasesService, periodosService, parcialesService } from '@servicios/catalogosService';
 import { useAuthStore } from '@almacen/authStore'
 import * as XLSX from 'xlsx'
-import jsPDF from 'jspdf'
-import 'jspdf-autotable'
+import { jsPDF } from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const Notas = () => {
   const { usuario } = useAuthStore()
@@ -212,7 +212,7 @@ const Notas = () => {
       return fila
     })
 
-    doc.autoTable({
+    autoTable(doc, {
       head: encabezado,
       body: filas,
       startY: 28,
