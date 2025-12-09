@@ -4,7 +4,7 @@ import { API_ENDPOINTS } from '@configuracion/api'
 export const usuariosService = {
     listar: async (params = {}) => {
         const response = await apiClient.get(API_ENDPOINTS.USUARIOS.LISTAR, { params })
-        return response.data.data || []
+        return response.data || []
     },
 
     guardar: async (data) => {
