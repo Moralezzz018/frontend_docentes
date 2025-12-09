@@ -18,10 +18,15 @@ export const asistenciasService = {
             Object.keys(data).forEach(key => {
                 if (key === 'imagenExcusa') {
                     formData.append('imagenExcusa', data[key])
-                } else if (data[key] !== null && data[key] !== undefined) {
+                } else if (data[key] !== null && data[key] !== undefined && data[key] !== '') {
                     formData.append(key, data[key])
                 }
             })
+            
+            // Asegurar que descripcion se envíe aunque esté vacía
+            if (!formData.has('descripcion')) {
+                formData.append('descripcion', '')
+            }
             
             const response = await apiClient.post(API_ENDPOINTS.ASISTENCIAS.GUARDAR, formData, {
                 headers: {
